@@ -1,7 +1,7 @@
 ## General
 
 | Shortcut          | Action
-|-------------------|-------------------------------------------------
+|-------------------|-------------------------------------------------------------------
 | `ctrl+1`          | Jump to tree tab
 | `ctrl+2`          | Jump to skills tab
 | `ctrl+3`          | Jump to items tab
@@ -33,7 +33,8 @@
 | `ctrl`            | while scrolling on a slider makes it 5 times slower
 
 ### Notes
-* When creating an item either through item creator or adding an item pressing `ctrl` will add it to the first slot and `ctrl+shift` will add it to the second slot e.g. offhand for a weapon.
+* When creating an item either through item creator or adding an item pressing `ctrl` will add it 
+to the first slot and `ctrl+shift` will add it to the second slot e.g. offhand for a weapon.
 
 ## Passive tree
 
@@ -49,18 +50,18 @@
 
 ## Developer Use
 
-| Shortcut      | Action              
-|---------------|-------------------------------------------------------------------
-| <tt>ctrl+`</tt> | Toggle console  (console supports most standard editing shortcuts)
-| `pause`       | Toggle profiling 
+| Shortcut          | Action
+|-------------------|-------------------------------------------------------------------
+| <tt>ctrl+`</tt>   | Toggle console  (console supports most standard editing shortcuts)
+| `pause`           | Toggle profiling 
 
 ## Developer Mode
 
-| Shortcut      | Action                
-|---------------|-------------------------------------------------------------------
-| `ctrl`        | Rebuild mod cache (hold key during reload/refresh)
-| `ctrl+shift`  | Allow tree download
-| `alt`         | Show advanced mod breakdown/passing
-| `F5`          | Restart
-| `F6`          | Run garbage collector
-| `shift`       | Copy export xml to clipboard (hold key during export)
+| Shortcut          | Action
+|-------------------|-------------------------------------------------------------------
+| `ctrl`            | Rebuild mod cache (hold key during reload/refresh)
+| `ctrl+shift`      | Allow tree download
+| `alt`             | Show advanced mod breakdown/passing
+| `F5`              | Restart
+| `F6`              | Run garbage collector
+| `shift`           | Copy export xml to clipboard (hold key during export)
