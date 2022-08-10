@@ -24,11 +24,13 @@
 | `ctrl+ +/-/0`     | Zoom in/out/reset
 | `F1`              | Open item/gem/etc in poewiki.net
 | `F2`              | Rename item, set, etc.
-| `F2`              | Open shortcuts popup
+| `F3`              | Open shortcuts popup
 | `e`               | On an equipped item will open it on the edit menu on the right.
 | `ctrl+LMB`        | Enable/disable gems
 | `ctrl+RMB`        | Enable/disable gems from Full DPS
 | `mouse4/5`        | Undo/Redo path respectively (in build selection menu)
+| `shift`           | while scrolling on a slider makes it 5 times faster
+| `ctrl`            | while scrolling on a slider makes it 5 times slower
 
 ### Notes
 * When creating an item either through item creator or adding an item pressing `ctrl` will add it to the first slot and `ctrl+shift` will add it to the second slot e.g. offhand for a weapon.
@@ -47,14 +49,14 @@
 
 ## Developer Use
 
-| Shortcut      | Action
+| Shortcut      | Action              
 |---------------|-------------------------------------------------------------------
 | <tt>ctrl+`</tt> | Toggle console  (console supports most standard editing shortcuts)
 | `pause`       | Toggle profiling 
 
 ## Developer Mode
 
-| Shortcut      | Action
+| Shortcut      | Action                
 |---------------|-------------------------------------------------------------------
 | `ctrl`        | Rebuild mod cache (hold key during reload/refresh)
 | `ctrl+shift`  | Allow tree download
