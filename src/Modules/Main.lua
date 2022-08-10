@@ -902,21 +902,27 @@ function main:OpenShortcutsPopup()
 	if shortcutsFile then
 		shortcutsFile:close()
 		for line in io.lines(shortcutsName) do
-			if not line:find("|.*Shortcut") then
-				line = line:gsub("<[^>]*>", "")  -- Strip out html tags
-				line = line:gsub("`", "")  -- Strip out backticks
-				local headingTag, headingText = line:match("^(## )(.+)$")  -- if line starts with "## " then use as a heading
-				if headingTag and headingText then
-					if #shortcutsList > 0 then
-						t_insert(shortcutsList, { height = 10 })
+			if not launch.devMode and line:find("#+ ?Developer") then
+				break
+			end
+			line = line:gsub("<[^>]*>", "")  -- Strip out html tags
+			line = line:gsub("`", "")  -- Strip out backticks
+			local headingTag, headingText = line:match("^(## )(.+)$")  -- if line starts with "## " then use as a heading
+			if headingTag and headingText then
+				if #shortcutsList > 0 then
+					t_insert(shortcutsList, { height = 10 })
+				end
+				t_insert(shortcutsList, { height = 18, "^7"..headingText })
+			else
+				-- if not line:find("|.*Shortcut") then
+					local shortcut, action = line:match("^|(.+)| ?(.+)$")
+					if shortcut and action then
+						shortcut = shortcut:gsub("^ +", ""):gsub(" +$", "")  -- Trim leading/trailing spaces
+						t_insert(shortcutsList, { height = 14, "", "^7"..shortcut, "^7"..action })
+					else
+						t_insert(shortcutsList, { height = 14, "^7"..line })
 					end
-					t_insert(shortcutsList, { height = 18, "", "^7"..headingText })
-				end
-				local shortcut, action = line:match("^|(.+)| ?(.+)$")
-				if shortcut and action then
-					shortcut = shortcut:gsub("^ +", ""):gsub(" +$", "")  -- Trim leading/trailing spaces
-					t_insert(shortcutsList, { height = 14, "^7"..shortcut, "^7"..action, })
-				end
+				-- end
 			end
 		end
 	end
@@ -924,7 +930,7 @@ function main:OpenShortcutsPopup()
 	controls.close = new("ButtonControl", {"TOPRIGHT",nil,"TOPRIGHT"}, -10, 10, 50, 20, "Close", function()
 		self:ClosePopup()
 	end)
-	controls.help = new("TextListControl", nil, 0, 40, 630, 440, {{x=160,align="RIGHT_X"},{x=166,align="LEFT"}}, shortcutsList)
+	controls.shortcuts = new("TextListControl", nil, 0, 40, 630, 440, {{x=1,align="LEFT"},{x=140,align="RIGHT_X"},{x=155,align="LEFT"}}, shortcutsList)
 	self:OpenPopup(650, 500, " Keyboard/mouse shortcuts ", controls)
 end
 
