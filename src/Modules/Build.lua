@@ -912,9 +912,11 @@ function buildMode:OnFrame(inputEvents)
 				else
 					self:CloseBuild()
 				end
-		elseif IsKeyDown("CTRL") then
+			elseif event.key == "F3" then
+				main:OpenShortcutsPopup()
+			elseif IsKeyDown("CTRL") then
 				if event.key == "i" then
-						self.viewMode = "IMPORT"
+					self.viewMode = "IMPORT"
 					self.importTab:SelectControl(self.importTab.controls.importCodeIn)
 				elseif event.key == "s" then
 					self:SaveDBFile()
