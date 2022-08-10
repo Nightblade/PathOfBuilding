@@ -1,3 +1,4 @@
+# Hotkeys & Shortcuts
 ## General
 
 | Shortcut          | Action

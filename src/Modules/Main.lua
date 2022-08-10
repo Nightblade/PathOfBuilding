@@ -907,12 +907,12 @@ function main:OpenShortcutsPopup()
 			end
 			line = line:gsub("<[^>]*>", "")  -- Strip out html tags
 			line = line:gsub("`", "")  -- Strip out backticks
-			local headingTag, headingText = line:match("^(#+ ?)(.+)$")  -- if line starts with "## " then use as a heading
+			local headingTag, headingText = line:match("^(#+) ?(.+)$")  -- if line starts with "#" then use as a heading
 			if headingTag and headingText then
 				if #shortcutsList > 0 then
 					t_insert(shortcutsList, { height = 10 })
 				end
-				t_insert(shortcutsList, { height = 18, "^7"..headingText })
+				t_insert(shortcutsList, { height = 22 - ( #headingTag * 2 ), "^7"..headingText })
 				t_insert(shortcutsList, { height = 5 })
 			else
 				if not ( line:find("|.*Shortcut") or line:find("----------", 1, true) ) then
@@ -926,12 +926,13 @@ function main:OpenShortcutsPopup()
 				end
 			end
 		end
+		t_insert(shortcutsList, { height = 10 })
 	end
 	local controls = { }
 	controls.close = new("ButtonControl", {"TOPRIGHT",nil,"TOPRIGHT"}, -10, 10, 50, 20, "Close", function()
 		self:ClosePopup()
 	end)
-	controls.shortcuts = new("TextListControl", nil, 0, 40, 630, 440, {{x=1,align="LEFT"},{x=145,align="RIGHT_X"},{x=155,align="LEFT"}}, shortcutsList)
+	controls.shortcuts = new("TextListControl", nil, 0, 40, 630, 440, {{x=1,align="LEFT"},{x=14,align="LEFT"},{x=155,align="LEFT"}}, shortcutsList)
 	self:OpenPopup(650, 500, " Keyboard/mouse shortcuts ", controls)
 end
 
