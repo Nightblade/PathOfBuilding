@@ -41,6 +41,10 @@ function TextListClass:Draw(viewPort)
 		local lineY = -scrollBar.offset
 		for _, lineInfo in ipairs(self.list) do
 			if lineInfo[colIndex] then
+				if lineInfo.bgCol then
+					SetDrawColor( lineInfo.bgCol )
+					DrawImage(nil, (lineInfo.x or colInfo.x) - 2, lineY, width - 20 - (lineInfo.x or colInfo.x), lineInfo.height)
+				end
 				DrawString(lineInfo.x or colInfo.x, lineY, lineInfo.align or colInfo.align, lineInfo.height, lineInfo.font or "VAR", lineInfo[colIndex])
 			end
 			lineY = lineY + lineInfo.height

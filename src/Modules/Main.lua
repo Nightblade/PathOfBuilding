@@ -901,6 +901,7 @@ function main:OpenShortcutsPopup()
 	local shortcutsFile = io.open(shortcutsName, "r")
 	if shortcutsFile then
 		shortcutsFile:close()
+		local bgHi = "^x202020"
 		for line in io.lines(shortcutsName) do
 			-- Stop at the start of developer shortcuts if in non-dev mode
 			if not launch.devMode and line:find("#+ ?Developer") then
@@ -918,18 +919,23 @@ function main:OpenShortcutsPopup()
 				t_insert(shortcutsList, { height = 22 - ( #headingTag * 2 ), "^7"..headingText })
 				t_insert(shortcutsList, { height = 5 })
 			else
-				-- Ignore table headings
-				if not ( line:find("|.*Shortcut") or line:find("----------", 1, true) ) then
-					-- Table contents
-					local shortcut, action = line:match("^|(.+)| ?(.+)$")
-					if shortcut and action then
+				-- Check for table
+				local shortcut, action = line:match("^|(.+)| ?(.+)$")
+				if shortcut and action then
+					-- Ignore headers
+					if not ( line:find("^|.*Shortcut") or line:find("^|%-+") ) then
 						-- Trim leading/trailing spaces
 						shortcut = shortcut:gsub("^ +", ""):gsub(" +$", "")
-						t_insert(shortcutsList, { height = 14, "", "^7"..shortcut, "^7"..action })
-					else
-						-- Normal line of text if we get here
-						t_insert(shortcutsList, { height = 14, "^7"..line })
+						-- Highlight every second line (TODO: a nicer way of doing this?)
+						if #shortcutsList % 2 == 0 then
+							t_insert(shortcutsList, { height = 14, bgCol = bgHi, "", "^7"..shortcut, "^7"..action })
+						else
+							t_insert(shortcutsList, { height = 14, "", "^7"..shortcut, "^7"..action })
+						end
 					end
+				else
+					-- Normal line of text if we get here
+					t_insert(shortcutsList, { height = 14, "^7"..line })
 				end
 			end
 		end
