@@ -902,12 +902,15 @@ function main:OpenShortcutsPopup()
 	if shortcutsFile then
 		shortcutsFile:close()
 		for line in io.lines(shortcutsName) do
+			-- Stop at the start of developer shortcuts if in non-dev mode
 			if not launch.devMode and line:find("#+ ?Developer") then
 				break
 			end
-			line = line:gsub("<[^>]*>", "")  -- Strip out html tags
-			line = line:gsub("`", "")  -- Strip out backticks
-			local headingTag, headingText = line:match("^(#+) ?(.+)$")  -- if line starts with "#" then use as a heading
+			-- Strip out html tags, backticks
+			line = line:gsub("<[^>]*>", "")
+			line = line:gsub("`", "")
+			-- Headings (lines that start with "#")
+			local headingTag, headingText = line:match("^(#+) ?(.+)$")
 			if headingTag and headingText then
 				if #shortcutsList > 0 then
 					t_insert(shortcutsList, { height = 10 })
@@ -915,12 +918,16 @@ function main:OpenShortcutsPopup()
 				t_insert(shortcutsList, { height = 22 - ( #headingTag * 2 ), "^7"..headingText })
 				t_insert(shortcutsList, { height = 5 })
 			else
+				-- Ignore table headings
 				if not ( line:find("|.*Shortcut") or line:find("----------", 1, true) ) then
+					-- Table contents
 					local shortcut, action = line:match("^|(.+)| ?(.+)$")
 					if shortcut and action then
-						shortcut = shortcut:gsub("^ +", ""):gsub(" +$", "")  -- Trim leading/trailing spaces
+						-- Trim leading/trailing spaces
+						shortcut = shortcut:gsub("^ +", ""):gsub(" +$", "")
 						t_insert(shortcutsList, { height = 14, "", "^7"..shortcut, "^7"..action })
 					else
+						-- Normal line of text if we get here
 						t_insert(shortcutsList, { height = 14, "^7"..line })
 					end
 				end
