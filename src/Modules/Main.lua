@@ -922,7 +922,7 @@ function main:OpenShortcutsPopup()
 				-- Table check
 				local shortcut, action = line:match("^|(.+)| ?(.+)$")
 				if shortcut and action then
-					-- Ignore table headers
+					-- Ignore table headers for shortcuts
 					if not ( line:find("^|.*Shortcut") or line:find("^|%-+") ) then
 						-- Trim leading/trailing spaces
 						shortcut = shortcut:gsub("^ +", ""):gsub(" +$", "")

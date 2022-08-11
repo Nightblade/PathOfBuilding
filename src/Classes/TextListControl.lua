@@ -41,6 +41,7 @@ function TextListClass:Draw(viewPort)
 		local lineY = -scrollBar.offset
 		for _, lineInfo in ipairs(self.list) do
 			if lineInfo[colIndex] then
+				-- Background colouring
 				if lineInfo.bgCol then
 					SetDrawColor( lineInfo.bgCol )
 					DrawImage(nil, (lineInfo.x or colInfo.x) - 2, lineY, width - 20 - (lineInfo.x or colInfo.x), lineInfo.height)
