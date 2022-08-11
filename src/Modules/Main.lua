@@ -907,10 +907,10 @@ function main:OpenShortcutsPopup()
 			if not launch.devMode and line:find("#+ ?Developer") then
 				break
 			end
-			-- Strip out html tags, backticks
+			-- Strip out html tags and backticks
 			line = line:gsub("<[^>]*>", "")
 			line = line:gsub("`", "")
-			-- Headings (lines that start with "#")
+			-- Heading check (lines that start with "#")
 			local headingTag, headingText = line:match("^(#+) ?(.+)$")
 			if headingTag and headingText then
 				if #shortcutsList > 0 then
@@ -919,10 +919,10 @@ function main:OpenShortcutsPopup()
 				t_insert(shortcutsList, { height = 22 - ( #headingTag * 2 ), "^7"..headingText })
 				t_insert(shortcutsList, { height = 5 })
 			else
-				-- Check for table
+				-- Table check
 				local shortcut, action = line:match("^|(.+)| ?(.+)$")
 				if shortcut and action then
-					-- Ignore headers
+					-- Ignore table headers
 					if not ( line:find("^|.*Shortcut") or line:find("^|%-+") ) then
 						-- Trim leading/trailing spaces
 						shortcut = shortcut:gsub("^ +", ""):gsub(" +$", "")
