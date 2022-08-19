@@ -114,12 +114,12 @@ end)
 ```lua
 -- bad
 local function Hello ( name, language )
-	-- code
+	-- code --
 end
 
 -- good ✔️
 local function Hello(name, language)
-	-- code
+	-- code --
 end
 ```
 
@@ -127,19 +127,19 @@ end
 ```lua
 -- bad
 local function Foo()
-	-- code
+	-- code --
 end
 local function Bar()
-	-- code
+	-- code --
 end
 
 -- good ✔️
 local function Foo()
-	-- code
+	-- code --
 end
 
 local function Bar()
-	-- code
+	-- code --
 end
 ```
 
@@ -184,9 +184,7 @@ local player = {
 local function isGoodName(name, options, arg)
 	local isGood = #name > 3
 	isGood = isGood and #name < 30
-
-	-- ...stuff...
-
+	-- code --
 	return isGood
 end
 
@@ -195,9 +193,7 @@ local function isGoodName(name, options, args)
 	if #name < 3 or #name > 30 then
 		return false
 	end
-
-	-- ...stuff...
-
+	-- code --
 	return true
 end
 ```
