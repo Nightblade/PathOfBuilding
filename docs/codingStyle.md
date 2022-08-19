@@ -61,9 +61,9 @@ local numbers={1,2,3}
 numbers={1 , 2 , 3}
 numbers={1 ,2 ,3}
 local strings = { "hello"
-				, "Lua"
-				, "world"
-				}
+                , "Lua"
+                , "world"
+                }
 dog.Set( "attr",{
 	age="1 year",
  breed="Bernese Mountain Dog"
@@ -92,12 +92,12 @@ local message = "Hello, "..user.."! This is your day # "..day.." in our platform
 ```lua
 -- bad
 local myTable = {
-					"hello",
-					"world",
-				 }
+                    "hello",
+                    "world",
+                 }
 UsingACallback(x, function(...)
-						print("hello")
-					end)
+                       print("hello")
+                    end)
 
 -- good
 local myTable = {
@@ -157,7 +157,7 @@ local longIdentifier = 2
 * Alignment is occasionally useful when logical correspondence is to be highlighted:
 ```lua
 -- okay
-SysCommand(form, UI_FORM_UPDATE_NODE, "a",		FORM_NODE_HIDDEN,  false)
+SysCommand(form, UI_FORM_UPDATE_NODE, "a",      FORM_NODE_HIDDEN,  false)
 SysCommand(form, UI_FORM_UPDATE_NODE, "sample", FORM_NODE_VISIBLE, false)
 ```
 
