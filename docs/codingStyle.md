@@ -51,7 +51,7 @@ This guide is specifically for **Path Of Building Community** development, origi
 * Use a space after `--`.
 ```lua
 --bad
--- good
+-- good ✔️
 ```
 * Always put a space after commas and between operators and assignment signs.
 ```lua
@@ -69,7 +69,7 @@ dog.Set( "attr",{
  breed="Bernese Mountain Dog"
 })
 
--- good
+-- good ✔️
 local x = y * 9
 local numbers = {1, 2, 3}
 local strings = {
@@ -84,7 +84,7 @@ dog.Set("attr", {
 ```
 * The concatenation operator does not need spaces.
 ```lua
--- okay
+-- okay ✔️
 local message = "Hello, "..user.."! This is your day # "..day.." in our platform!"
 ```
 
@@ -99,7 +99,7 @@ UsingACallback(x, function(...)
                        print("hello")
                     end)
 
--- good
+-- good ✔️
 local myTable = {
 	"hello",
 	"world",
@@ -117,7 +117,7 @@ local function Hello ( name, language )
 	-- code
 end
 
--- good
+-- good ✔️
 local function Hello(name, language)
 	-- code
 end
@@ -133,7 +133,7 @@ local function Bar()
 	-- code
 end
 
--- good
+-- good ✔️
 local function Foo()
 	-- code
 end
@@ -149,14 +149,14 @@ end
 local a              = 1
 local longIdentifier = 2
 
--- good
+-- good ✔️
 local a = 1
 local longIdentifier = 2
 ```
 
 * Alignment is occasionally useful when logical correspondence is to be highlighted:
 ```lua
--- okay
+-- okay ✔️
 SysCommand(form, UI_FORM_UPDATE_NODE, "a",      FORM_NODE_HIDDEN,  false)
 SysCommand(form, UI_FORM_UPDATE_NODE, "sample", FORM_NODE_VISIBLE, false)
 ```
@@ -189,7 +189,7 @@ local function isGoodName(name, options, arg)
 	return isGood
 end
 
--- good
+-- good ✔️
 local function isGoodName(name, options, args)
 	if #name < 3 or #name > 30 then
 		return false
@@ -206,16 +206,16 @@ end
 
 * Only use single-line blocks for `then return`, `then break` and `function return` (a.k.a "lambda") constructs:
 ```lua
--- good
+-- good ✔️
 if test then break end
 
--- good
+-- good ✔️
 if not ok then return nil, "this failed for this reason: "..reason end
 
--- good
+-- good ✔️
 UseCallback(x, function(k) return k.last end)
 
--- good
+-- good ✔️
 if test then
 	return false
 end
@@ -223,7 +223,7 @@ end
 -- bad
 if test < 1 and DoComplicated(test) == false or seven == 8 and nine == 10 then DoOtherComplicated() end
 
--- good
+-- good ✔️
 if test < 1 and DoComplicated(test) == false or seven == 8 and nine == 10 then
 	DoOtherComplicated() 
 	return false 
@@ -235,7 +235,7 @@ end
 local whatever = "sure";
 a = 1; b = 2
 
--- good
+-- good ✔️
 local whatever = "sure"
 a = 1
 b = 2
@@ -251,7 +251,7 @@ if name ~= nil then
 	-- ...stuff...
 end
 
--- good
+-- good ✔️
 if name then
 	-- ...stuff...
 end
@@ -279,6 +279,6 @@ Note that using `x and y or z` as a substitute for `x ? y : z` does not work if 
 -- bad
 local totalScore = reviewScore..""
 
--- good
+-- good ✔️
 local totalScore = tostring(reviewScore)
 ```
