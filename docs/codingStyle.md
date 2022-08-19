@@ -166,6 +166,7 @@ SysCommand(form, UI_FORM_UPDATE_NODE, "sample", FORM_NODE_VISIBLE, false)
 
 * When creating a table, prefer populating its fields all at once, if possible:
 ```lua
+-- good ✔️
 local player = {
 	name = "Jack",
 	class = "Rogue",
@@ -260,11 +261,13 @@ end
 
 * Use the `and`/`or` idiom for the pseudo-ternary operator when it results in more straightforward code. When nesting expressions, use parentheses to make it easier to scan visually:
 ```lua
+-- good ✔️
 local function DefaultName(name)
 	-- return the default "Waldo" if name is nil
 	return name or "Waldo"
 end
 
+-- good ✔️
 local function BrewCoffee(machine)
 	return (machine and machine.isLoaded) and "coffee brewing" or "fill your water"
 end
