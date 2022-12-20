@@ -3,11 +3,11 @@
 
 ---
 >
->**RFC/DRAFT ONLY**
+>**RFC / DRAFT**
 >---
 ---
 
-This guide is for **Path Of Building** Lua development.  It is based on the "Lua Style Guide" from the LuaRocks project.
+This coding style guide is for **Path Of Building** Lua development.  It is based on the "Lua Style Guide" from the LuaRocks project.
 
 
 ## Indentation and Formatting
@@ -18,12 +18,12 @@ This guide is for **Path Of Building** Lua development.  It is based on the "Lua
 
 ## Strings
 
-* Use `"double quotes"`, with `'single quotes'` for strings containing `'"double" "quotes"'`.
+* `"Double quotes"`, with `'single quotes'` for strings containing `'"double" "quotes"'`.
 
 
 ## Maximum Line length
 
-* Try to avoid lines over 200 characters in length, but otherwise there's no hard rule.
+* Try to avoid lines over 200 characters in length, but there's no hard rule.
 
 
 ## Naming
@@ -41,17 +41,17 @@ This guide is for **Path Of Building** Lua development.  It is based on the "Lua
 ## Variable Declaration and Scope
 
 * Always use `local` to declare variables.
-* Assign variables using the smallest possible scope.
 * Use the local versions of built-in globals.  They are in `lower_snake_case` (e.g. `s_format` for `string.format`).
+* Assign variables using the smallest possible scope.
 
 ## Comments
 
+* Put long comments on a separate line.
 * Use a single space after `--` .
 ```lua
 -- good ✔️
---bad
+--bad ❌
 ```
-* Put long comments on a separate line.
 
 ## Spacing
 
@@ -61,7 +61,7 @@ This guide is for **Path Of Building** Lua development.  It is based on the "Lua
 local x = y * 9
 local numbers = {1, 2, 3}
 
--- bad
+-- bad ❌
 local x=y*9
 local numbers={1,2,3}
 
@@ -76,8 +76,7 @@ local myTable = {
 }
 
 
-
--- bad
+-- bad ❌
 local myTable = {
 					"hello",
 					"world",
@@ -91,11 +90,11 @@ local myTable = {
 -- good ✔️
 local function Hello(name, language)
 
--- bad
+-- bad ❌
 local function Hello (name, language)
 ```
 
-* Add a blank line between functions:
+* Blank line between functions:
 ```lua
 -- good ✔️
 local function Foo()
@@ -106,8 +105,7 @@ local function Bar()
 	-- code --
 end
 
-
--- bad
+-- bad ❌
 local function Foo()
 	-- code --
 end
@@ -122,7 +120,7 @@ end
 local a = 1
 local longIdentifier = 2
 
--- bad
+-- bad ❌
 local a              = 1
 local longIdentifier = 2
 ```
@@ -137,6 +135,7 @@ SysCommand(form, UI_FORM_UPDATE_NODE, "sample", FORM_NODE_VISIBLE, false)
 
 ## Tables
 
+* Add a trailing comma to all fields, including the last one.
 * When creating a table, prefer populating its fields all at once, if possible:
 ```lua
 -- good ✔️
@@ -145,7 +144,6 @@ local player = {
 	class = "Rogue",
 }
 ```
-* Add a trailing comma to all fields including the last one.
 
 
 ## Functions
@@ -162,7 +160,7 @@ local function isGoodName(name, options, args)
 	return true
 end
 
--- bad
+-- bad ❌
 local function isGoodName(name, options, arg)
 	local isGood = #name > 3
 	isGood = isGood and #name < 30
@@ -196,16 +194,16 @@ if test < 1 and DoComplicated(test) == false or seven == 8 and nine == 10 then
 	return false 
 end
 
--- bad
+-- bad ❌
 if test < 1 and DoComplicated(test) == false or seven == 8 and nine == 10 then DoOtherComplicated() end
 ```
-* Do not use semicolons as statement terminators, separate statements onto multiple lines.
+* Do not use semicolons as statement terminators.  Separate statements onto multiple lines.
 ```lua
 -- good ✔️
 a = 1
 b = 2
 
--- bad
+-- bad ❌
 a = 1; b = 2
 ```
 
@@ -219,19 +217,18 @@ if name then
 	-- code --
 end
 
--- bad
+-- bad ❌
 if name ~= nil then
 	-- code --
 end
 ```
-* Avoid designing APIs which depend on the difference between `nil` and `false`.
-
+* Avoid designs that depend on the difference between `nil` and `false`.
 * Use the `and`/`or` idiom for the pseudo-ternary operator when it results in more straightforward code. When nesting expressions, use parentheses to make it easier to scan visually:
 ```lua
 -- good ✔️
 local function DefaultName(name)
-	-- return the default "Waldo" if name is nil
-	return name or "Waldo"
+	-- return the default "Fred" if name is nil
+	return name or "Fred"
 end
 
 -- good ✔️
@@ -239,7 +236,7 @@ local function BrewCoffee(machine)
 	return (machine and machine.isLoaded) and "coffee brewing" or "fill your water"
 end
 ```
-Note that using "`x and y or z`" as a substitute for "`x ? y : z`" does not work if `y` may be `nil` or `false` so avoid it altogether for returning booleans or values which may be `nil`.
+Note that using "`x and y or z`" as a substitute for "`x ? y : z`" does not work if `y` may be `nil` or `false`, so avoid it altogether for returning booleans or values which may be `nil`.
 
 
 ## Typing
@@ -247,8 +244,8 @@ Note that using "`x and y or z`" as a substitute for "`x ? y : z`" does not work
 * Use standard functions for type conversion, avoid coercion:
 ```lua
 -- good ✔️
-local totalScore = tostring(reviewScore)
+local totalScore = to_string(reviewScore)
 
--- bad
+-- bad ❌
 local totalScore = reviewScore .. ""
 ```
