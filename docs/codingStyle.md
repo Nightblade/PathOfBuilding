@@ -18,7 +18,7 @@ This guide is for **Path Of Building** Lua development.  It is based on the "Lua
 
 ## Strings
 
-* `"double quotes"`, with `'single quotes'` for strings containing `'"double" "quotes"'`.
+* Use `"double quotes"`, with `'single quotes'` for strings containing `'"double" "quotes"'`.
 
 
 ## Maximum Line length
@@ -34,7 +34,7 @@ This guide is for **Path Of Building** Lua development.  It is based on the "Lua
 * **Constants**: `ALL_CAPS`.
 * A single underscore (`_`) may be used for ignored variables (i.e. `for` loops).
 * Avoid all-caps names starting with `_` as they are reserved by Lua (e.g. `_VERSION`).
-* Avoid single-letter names (e.g. `i`), except for iterators, or very small scopes (less than ten lines or so).
+* Avoid single-letter names (e.g. `x`), except for iterators, or very small scopes (less than ten lines or so).
 * Avoid words that need an apostrophe (e.g. `dont`, `wont`, `cant`).
 * Ideally, variables with larger scope should be given more descriptive names than those with smaller scope.
 
@@ -42,11 +42,11 @@ This guide is for **Path Of Building** Lua development.  It is based on the "Lua
 
 * Always use `local` to declare variables.
 * Assign variables using the smallest possible scope.
-* Use the local versions of built-in globals.  They use `lower_snake_case` (e.g. `s_format` for `string.format`).
+* Use the local versions of built-in globals.  They are in `lower_snake_case` (e.g. `s_format` for `string.format`).
 
 ## Comments
 
-* Use a single space after `--`.
+* Use a single space after `--` .
 ```lua
 -- good ✔️
 --bad
@@ -60,29 +60,11 @@ This guide is for **Path Of Building** Lua development.  It is based on the "Lua
 -- good ✔️
 local x = y * 9
 local numbers = {1, 2, 3}
-local strings = {
-	"hello",
-	"Lua",
-	"world",
-}
-dog.Set("attr", {
-	age = "1 year",
-	breed = "Bernese Mountain Dog",
-})
 
 -- bad
 local x=y*9
 local numbers={1,2,3}
-numbers={1 , 2 , 3}
-numbers={1 ,2 ,3}
-local strings = { "hello"
-                , "Lua"
-                , "world"
-                }
-dog.Set( "attr",{
-	age="1 year",
- breed="Bernese Mountain Dog"
-})
+
 ```
 
 * Indent tables and functions according to the start of the line, not the construct:
@@ -92,32 +74,25 @@ local myTable = {
 	"hello",
 	"world",
 }
-UsingACallback(x, function(...)
-	print("hello")
-end)
+
+
 
 -- bad
 local myTable = {
-                    "hello",
-                    "world",
-                 }
-UsingACallback(x, function(...)
-                       print("hello")
-                    end)
+					"hello",
+					"world",
+				}
+
 ```
 
 
-* No spaces after the name of a function in a declaration or in its arguments:
+* No spaces after the name of a function in a declaration:
 ```lua
 -- good ✔️
 local function Hello(name, language)
-	-- code --
-end
 
 -- bad
-local function Hello ( name, language )
-	-- code --
-end
+local function Hello (name, language)
 ```
 
 * Add a blank line between functions:
@@ -130,6 +105,7 @@ end
 local function Bar()
 	-- code --
 end
+
 
 -- bad
 local function Foo()
