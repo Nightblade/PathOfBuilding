@@ -1,30 +1,30 @@
 
-# PoBC Lua Coding Style Guide
+# PoB Lua Coding Style Guide
 
 ---
 >
->**DRAFT ONLY**
+>**RFC/DRAFT ONLY**
 >---
 ---
 
-This guide is specifically for **Path Of Building Community** development.  It is based on the "Lua Style Guide" from the LuaRocks project.
+This guide is for **Path Of Building** Lua development.  It is based on the "Lua Style Guide" from the LuaRocks project.
 
 
 ## Indentation and Formatting
 
-* Indent style: `tab` only.
-* Line endings: `LF` (Unix).
+* Indent style: `TAB`.
+* Line endings: `LF`.
 
 
 ## Strings
 
-* Use `"double quotes"`.
-* Use `'single quotes'` for strings containing double quotes.
+* `"double quotes"`.
+* `'single quotes'` for strings containing double quotes.
 
 
 ## Maximum Line length
 
-* No hard rule, but try to avoid lines over 200 characters.
+* Try to avoid lines over 200 characters, but otherwise there's no hard rule.
 
 
 ## Naming
@@ -34,9 +34,9 @@ This guide is specifically for **Path Of Building Community** development.  It i
 * **Classes**, **Methods**, and **Functions**: `UpperCamelCase`.  Acronyms (e.g. XML) are fully capitalised (`ImportCodeXML`).
 * **Variables**: `lowerCamelCase`.  Acronyms (e.g. XML) obey `lowerCamelCase` (`xmlText`).
 * **Booleans**: `is` prefix preferable (`isCodeValid`).
-* **Constants**: `ALLCAPS`.
-* `_` may be used for ignored variables (for loops).
-* Avoid uppercase names starting with `_`, they are reserved by Lua (e.g. `_VERSION`).
+* **Constants**: `ALL_CAPS`.
+* A single underscore (`_`) may be used for ignored variables (i.e. `for` loops).
+* Avoid all-caps names starting with `_` as they are reserved by Lua (e.g. `_VERSION`).
 
 
 ## Variable Declaration and Scope
