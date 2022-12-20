@@ -7,7 +7,7 @@
 >---
 ---
 
-This guide is specifically for **Path Of Building Community** development, originally based on the "Lua Style Guide" from the LuaRocks project.
+This guide is specifically for **Path Of Building Community** development.  It is based on the "Lua Style Guide" from the LuaRocks project.
 
 
 ## Indentation and Formatting
@@ -36,25 +36,41 @@ This guide is specifically for **Path Of Building Community** development, origi
 * **Booleans**: `is` prefix preferable (`isCodeValid`).
 * **Constants**: `ALLCAPS`.
 * `_` may be used for ignored variables (for loops).
-* Uppercase names starting with `_`, are reserved by Lua (e.g. `_VERSION`).
+* Avoid uppercase names starting with `_`, they are reserved by Lua (e.g. `_VERSION`).
 
 
 ## Variable Declaration and Scope
 
 * Always use `local` to declare variables.
 * Assign variables using the smallest possible scope.
-* Many globals have local versions already defined and use `snake_case` (e.g. `s_format` for `string.format`).
+* Use the local versions of built-in globals.  They use `snake_case` (e.g. `s_format` for `string.format`).
 
+## Comments
+
+* Long comments on a separate line.
+* Use a space after `--`.
+```lua
+-- good ✔️
+--bad
+```
 
 ## Spacing
 
-* Use a space after `--`.
-```lua
---bad
--- good ✔️
-```
 * Always put a space after commas and between operators and assignment signs.
 ```lua
+-- good ✔️
+local x = y * 9
+local numbers = {1, 2, 3}
+local strings = {
+	"hello",
+	"Lua",
+	"world",
+}
+dog.Set("attr", {
+	age = "1 year",
+	breed = "Bernese Mountain Dog",
+})
+
 -- bad
 local x = y*9
 local numbers={1,2,3}
@@ -68,19 +84,6 @@ dog.Set( "attr",{
 	age="1 year",
  breed="Bernese Mountain Dog"
 })
-
--- good ✔️
-local x = y * 9
-local numbers = {1, 2, 3}
-local strings = {
-	"hello",
-	"Lua",
-	"world",
-}
-dog.Set("attr", {
-	age = "1 year",
-	breed = "Bernese Mountain Dog",
-})
 ```
 * The concatenation operator does not need spaces.
 ```lua
@@ -90,15 +93,6 @@ local message = "Hello, "..user.."! This is your day # "..day.." in our platform
 
 * Indent tables and functions according to the start of the line, not the construct:
 ```lua
--- bad
-local myTable = {
-                    "hello",
-                    "world",
-                 }
-UsingACallback(x, function(...)
-                       print("hello")
-                    end)
-
 -- good ✔️
 local myTable = {
 	"hello",
@@ -107,37 +101,46 @@ local myTable = {
 UsingACallback(x, function(...)
 	print("hello")
 end)
+
+-- bad
+local myTable = {
+                    "hello",
+                    "world",
+                 }
+UsingACallback(x, function(...)
+                       print("hello")
+                    end)
 ```
 
 
 * No spaces after the name of a function in a declaration or in its arguments:
 ```lua
--- bad
-local function Hello ( name, language )
-	-- code --
-end
-
 -- good ✔️
 local function Hello(name, language)
 	-- code --
 end
+
+-- bad
+local function Hello ( name, language )
+	-- code --
+end
 ```
 
-* Add blank lines between functions:
+* Add a blank line between functions:
 ```lua
--- bad
-local function Foo()
-	-- code --
-end
-local function Bar()
-	-- code --
-end
-
 -- good ✔️
 local function Foo()
 	-- code --
 end
 
+local function Bar()
+	-- code --
+end
+
+-- bad
+local function Foo()
+	-- code --
+end
 local function Bar()
 	-- code --
 end
@@ -145,12 +148,12 @@ end
 
 * Avoid aligning variable declarations:
 ```lua
--- bad
-local a              = 1
-local longIdentifier = 2
-
 -- good ✔️
 local a = 1
+local longIdentifier = 2
+
+-- bad
+local a              = 1
 local longIdentifier = 2
 ```
 
@@ -180,14 +183,6 @@ local player = {
 * Perform validation early and return as early as possible.
 
 ```lua
--- bad
-local function isGoodName(name, options, arg)
-	local isGood = #name > 3
-	isGood = isGood and #name < 30
-	-- code --
-	return isGood
-end
-
 -- good ✔️
 local function isGoodName(name, options, args)
 	if #name < 3 or #name > 30 then
@@ -196,12 +191,20 @@ local function isGoodName(name, options, args)
 	-- code --
 	return true
 end
+
+-- bad
+local function isGoodName(name, options, arg)
+	local isGood = #name > 3
+	isGood = isGood and #name < 30
+	-- code --
+	return isGood
+end
 ```
 
 
 ## Blocks
 
-* Only use single-line blocks for `then return`, `then break` and `function return` (a.k.a "lambda") constructs:
+* Only use single-line blocks for "`then return`", "`then break`" and "`function return`" (a.k.a "lambda") constructs:
 ```lua
 -- good ✔️
 if test then break end
@@ -217,25 +220,25 @@ if test then
 	return false
 end
 
--- bad
-if test < 1 and DoComplicated(test) == false or seven == 8 and nine == 10 then DoOtherComplicated() end
-
 -- good ✔️
 if test < 1 and DoComplicated(test) == false or seven == 8 and nine == 10 then
 	DoOtherComplicated() 
 	return false 
 end
+
+-- bad
+if test < 1 and DoComplicated(test) == false or seven == 8 and nine == 10 then DoOtherComplicated() end
 ```
 * Separate statements onto multiple lines -- do not use semicolons as statement terminators.
 ```lua
--- bad
-local whatever = "sure";
-a = 1; b = 2
-
 -- good ✔️
 local whatever = "sure"
 a = 1
 b = 2
+
+-- bad
+local whatever = "sure";
+a = 1; b = 2
 ```
 
 
@@ -243,14 +246,14 @@ b = 2
 
 * `false` and `nil` are falsy in conditional expressions. Use shortcuts when you can, unless you need to know the difference between `false` and `nil`.
 ```lua
--- bad
-if name ~= nil then
-	-- ...stuff...
-end
-
 -- good ✔️
 if name then
-	-- ...stuff...
+	-- code --
+end
+
+-- bad
+if name ~= nil then
+	-- code --
 end
 ```
 * Avoid designing APIs which depend on the difference between `nil` and `false`.
@@ -268,16 +271,16 @@ local function BrewCoffee(machine)
 	return (machine and machine.isLoaded) and "coffee brewing" or "fill your water"
 end
 ```
-Note that using `x and y or z` as a substitute for `x ? y : z` does not work if `y` may be `nil` or `false` so avoid it altogether for returning booleans or values which may be `nil`.
+Note that using "`x and y or z`" as a substitute for "`x ? y : z`" does not work if `y` may be `nil` or `false` so avoid it altogether for returning booleans or values which may be `nil`.
 
 
 ## Typing
 
-* Use the standard functions for type conversion, avoid relying on coercion:
+* Use standard functions for type conversion, avoid coercion:
 ```lua
--- bad
-local totalScore = reviewScore..""
-
 -- good ✔️
 local totalScore = tostring(reviewScore)
+
+-- bad
+local totalScore = reviewScore..""
 ```
