@@ -18,13 +18,12 @@ This guide is for **Path Of Building** Lua development.  It is based on the "Lua
 
 ## Strings
 
-* `"double quotes"`.
-* `'single quotes'` for strings containing double quotes.
+* `"double quotes"`, with `'single quotes'` for strings containing `'"double" "quotes"'`.
 
 
 ## Maximum Line length
 
-* Try to avoid lines over 200 characters, but otherwise there's no hard rule.
+* Try to avoid lines over 200 characters in length, but otherwise there's no hard rule.
 
 
 ## Naming
@@ -35,28 +34,28 @@ This guide is for **Path Of Building** Lua development.  It is based on the "Lua
 * **Constants**: `ALL_CAPS`.
 * A single underscore (`_`) may be used for ignored variables (i.e. `for` loops).
 * Avoid all-caps names starting with `_` as they are reserved by Lua (e.g. `_VERSION`).
-* Avoid single-letter names (e.g. '`i`'), except for iterators, or very small scopes (less than ten lines or so).
-* Avoid krangled contractions (e.g. `dont`, `wont`, `cant`).
+* Avoid single-letter names (e.g. `i`), except for iterators, or very small scopes (less than ten lines or so).
+* Avoid words that need an apostrophe (e.g. `dont`, `wont`, `cant`).
 * Ideally, variables with larger scope should be given more descriptive names than those with smaller scope.
 
 ## Variable Declaration and Scope
 
 * Always use `local` to declare variables.
 * Assign variables using the smallest possible scope.
-* Use the local versions of built-in globals.  They use `snake_case` (e.g. `s_format` for `string.format`).
+* Use the local versions of built-in globals.  They use `lower_snake_case` (e.g. `s_format` for `string.format`).
 
 ## Comments
 
-* Long comments on a separate line.
-* Use a space after `--`.
+* Use a single space after `--`.
 ```lua
 -- good ✔️
 --bad
 ```
+* Put long comments on a separate line.
 
 ## Spacing
 
-* Always put a space after commas and between operators and assignment signs.
+* Always put a space after commas, between operators, and between assignment signs.
 ```lua
 -- good ✔️
 local x = y * 9
@@ -72,7 +71,7 @@ dog.Set("attr", {
 })
 
 -- bad
-local x = y*9
+local x=y*9
 local numbers={1,2,3}
 numbers={1 , 2 , 3}
 numbers={1 ,2 ,3}
@@ -84,11 +83,6 @@ dog.Set( "attr",{
 	age="1 year",
  breed="Bernese Mountain Dog"
 })
-```
-* The concatenation operator does not need spaces.
-```lua
--- okay ✔️
-local message = "Hello, "..user.."! This is your day # "..day.." in our platform!"
 ```
 
 * Indent tables and functions according to the start of the line, not the construct:
@@ -210,7 +204,7 @@ end
 if test then break end
 
 -- good ✔️
-if not ok then return nil, "this failed for this reason: "..reason end
+if not test then return nil, "this failed for this reason: " .. reason end
 
 -- good ✔️
 UseCallback(x, function(k) return k.last end)
@@ -229,15 +223,13 @@ end
 -- bad
 if test < 1 and DoComplicated(test) == false or seven == 8 and nine == 10 then DoOtherComplicated() end
 ```
-* Separate statements onto multiple lines -- do not use semicolons as statement terminators.
+* Do not use semicolons as statement terminators, separate statements onto multiple lines.
 ```lua
 -- good ✔️
-local whatever = "sure"
 a = 1
 b = 2
 
 -- bad
-local whatever = "sure";
 a = 1; b = 2
 ```
 
@@ -282,5 +274,5 @@ Note that using "`x and y or z`" as a substitute for "`x ? y : z`" does not work
 local totalScore = tostring(reviewScore)
 
 -- bad
-local totalScore = reviewScore..""
+local totalScore = reviewScore .. ""
 ```
