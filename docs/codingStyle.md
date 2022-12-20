@@ -29,15 +29,15 @@ This guide is for **Path Of Building** Lua development.  It is based on the "Lua
 
 ## Naming
 
-* Variables with larger scope should be given more descriptive names than those with smaller scope.
-* Avoid one-letter names except for iterators or very small scopes (less than ten lines).
 * **Classes**, **Methods**, and **Functions**: `UpperCamelCase`.  Acronyms (e.g. XML) are fully capitalised (`ImportCodeXML`).
 * **Variables**: `lowerCamelCase`.  Acronyms (e.g. XML) obey `lowerCamelCase` (`xmlText`).
-* **Booleans**: `is` prefix preferable (`isCodeValid`).
+* **Booleans**: '`is`' prefix preferable (`isCodeValid`).
 * **Constants**: `ALL_CAPS`.
 * A single underscore (`_`) may be used for ignored variables (i.e. `for` loops).
 * Avoid all-caps names starting with `_` as they are reserved by Lua (e.g. `_VERSION`).
-
+* Avoid single-letter names (e.g. '`i`'), except for iterators, or very small scopes (less than ten lines or so).
+* Avoid krangled contractions (e.g. `dont`, `wont`, `cant`).
+* Ideally, variables with larger scope should be given more descriptive names than those with smaller scope.
 
 ## Variable Declaration and Scope
 
