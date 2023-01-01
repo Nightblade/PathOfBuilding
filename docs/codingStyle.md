@@ -2,10 +2,10 @@
 # PoB Lua Coding Style Guide
 
 ---
->
->**RFC / DRAFT**
->---
+**RFC/DRAFT ONLY**
 ---
+---
+
 
 This coding style guide is for **Path Of Building** Lua development.  It is based on the "Lua Style Guide" from the LuaRocks project.
 
@@ -18,12 +18,13 @@ This coding style guide is for **Path Of Building** Lua development.  It is base
 
 ## Strings
 
-* `"Double quotes"`, with `'single quotes'` for strings containing `'"double" "quotes"'`.
+* `"Double quotes"`.
+* Use single quotes for strings containing `'"double" "quotes"'`.
 
 
 ## Maximum Line length
 
-* Try to avoid lines over 200 characters in length, but there's no hard rule.
+* Try to avoid lines over 200 characters, but there's no hard rule.
 
 
 ## Naming
@@ -35,8 +36,8 @@ This coding style guide is for **Path Of Building** Lua development.  It is base
 * A single underscore (`_`) may be used for ignored variables (i.e. `for` loops).
 * Avoid all-caps names starting with `_` as they are reserved by Lua (e.g. `_VERSION`).
 * Avoid single-letter names (e.g. `x`), except for iterators, or very small scopes (less than ten lines or so).
-* Avoid words that need an apostrophe (e.g. `dont`, `wont`, `cant`).
 * Ideally, variables with larger scope should be given more descriptive names than those with smaller scope.
+* Avoid words that use apostrophes (e.g. `don't`, `won't`, `can't`).
 
 ## Variable Declaration and Scope
 
@@ -46,8 +47,8 @@ This coding style guide is for **Path Of Building** Lua development.  It is base
 
 ## Comments
 
-* Put long comments on a separate line.
-* Use a single space after `--` .
+* Put long comments on their own line.
+* Put a space after `'--'` :
 ```lua
 -- good ✔️
 --bad ❌
@@ -55,7 +56,7 @@ This coding style guide is for **Path Of Building** Lua development.  It is base
 
 ## Spacing
 
-* Always put a space after commas, between operators, and between assignment signs.
+* Put space after commas, between operators, and between assignment signs:
 ```lua
 -- good ✔️
 local x = y * 9
@@ -64,26 +65,7 @@ local numbers = {1, 2, 3}
 -- bad ❌
 local x=y*9
 local numbers={1,2,3}
-
 ```
-
-* Indent tables and functions according to the start of the line, not the construct:
-```lua
--- good ✔️
-local myTable = {
-	"hello",
-	"world",
-}
-
-
--- bad ❌
-local myTable = {
-					"hello",
-					"world",
-				}
-
-```
-
 
 * No spaces after the name of a function in a declaration:
 ```lua
@@ -94,7 +76,7 @@ local function Hello(name, language)
 local function Hello (name, language)
 ```
 
-* Blank line between functions:
+* One blank line between functions:
 ```lua
 -- good ✔️
 local function Foo()
@@ -125,18 +107,34 @@ local a              = 1
 local longIdentifier = 2
 ```
 
-* Alignment is occasionally useful when logical correspondence is to be highlighted:
+* Alignment is occasionally acceptable when logical correspondence is to be highlighted:
 ```lua
 -- okay ✔️
-SysCommand(form, UI_FORM_UPDATE_NODE, "a",      FORM_NODE_HIDDEN,  false)
-SysCommand(form, UI_FORM_UPDATE_NODE, "sample", FORM_NODE_VISIBLE, false)
+Foo(form, UI_FORM_NODE, "a",      FORM_NODE_HIDDEN,  false)
+Foo(form, UI_FORM_NODE, "sample", FORM_NODE_VISIBLE, false)
 ```
 
+* Indent tables and functions according to the start of the line, not the construct:
+```lua
+-- good ✔️
+local myTable = {
+	"hello",
+	"world",
+}
+
+
+-- bad ❌
+local myTable = {
+					"hello",
+					"world",
+				}
+
+```
 
 ## Tables
 
 * Add a trailing comma to all fields, including the last one.
-* When creating a table, prefer populating its fields all at once, if possible:
+* When creating a table, prefer populating its fields all at once if possible:
 ```lua
 -- good ✔️
 local player = {
@@ -148,11 +146,11 @@ local player = {
 
 ## Functions
 
-* Perform validation early and return as early as possible.
+* Perform validation and return as early as possible:
 
 ```lua
 -- good ✔️
-local function isGoodName(name, options, args)
+local function IsGoodName(name, options, args)
 	if #name < 3 or #name > 30 then
 		return false
 	end
@@ -161,7 +159,7 @@ local function isGoodName(name, options, args)
 end
 
 -- bad ❌
-local function isGoodName(name, options, arg)
+local function IsGoodName(name, options, arg)
 	local isGood = #name > 3
 	isGood = isGood and #name < 30
 	-- code --
@@ -197,7 +195,7 @@ end
 -- bad ❌
 if test < 1 and DoComplicated(test) == false or seven == 8 and nine == 10 then DoOtherComplicated() end
 ```
-* Do not use semicolons as statement terminators.  Separate statements onto multiple lines.
+* Do not use semicolons as statement terminators:
 ```lua
 -- good ✔️
 a = 1
@@ -210,7 +208,7 @@ a = 1; b = 2
 
 ## Conditional expressions
 
-* `false` and `nil` are falsy in conditional expressions. Use shortcuts when you can, unless you need to know the difference between `false` and `nil`.
+* `false` and `nil` are falsy in conditional expressions. Use shortcuts when you can, unless you need to know the difference between `false` and `nil`:
 ```lua
 -- good ✔️
 if name then
