@@ -28,7 +28,7 @@ local skills, mod, flag, skill = ...
 #flags spell duration
 	statMap = {
 		["arcane_cloak_damage_absorbed_%"] = {
-			mod("GuardAbsorbRate", "BASE", nil, 0, 0, { type = "GlobalEffect", effectType = "Guard" }),
+			mod("GuardAbsorbRate", "BASE", nil, 0, 0, { type = "GlobalEffect", effectType = "Guard", unscalable = true }),
 		},
 		["arcane_cloak_consume_%_of_mana"] = {
 			mod("Multiplier:ArcaneCloakConsumedMana", "BASE", nil, 0, 0, { type = "PerStat", stat = "ManaUnreserved" }, { type = "GlobalEffect", effectType = "Guard", unscalable = true }),
@@ -243,10 +243,13 @@ local skills, mod, flag, skill = ...
 		["ball_lightning_superball_%_chance"] = {
 			mod("ball_lightning_superball_%_chance", "BASE", nil)
 		},
+		["ball_lightning_projectile_speed_and_hit_frequency_+%_final"] = {
+			mod("ProjectileSpeed", "MORE", nil)
+		},
 	},
 #baseMod skill("radius", 18)
 #baseMod skill("strikeInterval", 0.15)
-#baseMod skill("projectileSpeed", 48)
+#baseMod skill("projectileSpeed", 40)
 #baseMod skill("duration", 2)
 #mods
 
@@ -524,7 +527,7 @@ local skills, mod, flag, skill = ...
 #mods
 
 #skill DarkPact
-#flags spell area
+#flags spell area chaining
 	parts = {
 		{
 			name = "Cast on Player",
@@ -790,9 +793,24 @@ local skills, mod, flag, skill = ...
 		},
 	},
 #baseMod skill("showAverage", false, { type = "SkillPart", skillPart = 1 })
-#baseMod skill("radius", 22)
+#baseMod skill("radius", 25)
 #baseMod skill("radiusLabel", "Area in which fireballs fall:")
-#baseMod skill("radiusSecondary", 16)
+#baseMod skill("radiusSecondary", 13)
+#baseMod skill("radiusSecondaryLabel", "Area of fireball explosion:")
+#mods
+
+#skill VaalFirestorm
+#flags spell area duration
+	statMap = {
+		["vaal_firestorm_gem_explosion_area_of_effect_+%_final"] = {
+			mod("AreaOfEffectSecondary", "MORE", nil, 0, 0)
+		},
+	},
+#baseMod skill("dotIsArea", true)
+#baseMod flag("dotIsBurningGround")
+#baseMod skill("radius", 20)
+#baseMod skill("radiusLabel", "Area in which fireballs fall:")
+#baseMod skill("radiusSecondary", 13)
 #baseMod skill("radiusSecondaryLabel", "Area of fireball explosion:")
 #mods
 
@@ -885,6 +903,7 @@ local skills, mod, flag, skill = ...
 	},
 #baseMod skill("radius", 2)
 #baseMod skill("showAverage", true)
+#baseMod mod("PvpTvalueMultiplier", "MORE", 100, 0, 0, { type = "Multiplier", var = "FlameblastStageAfterFirst" })
 #mods
 
 #skill VaalFlameblast
@@ -1042,10 +1061,16 @@ local skills, mod, flag, skill = ...
 	end,
 	statMap = {
 		["base_cold_damage_resistance_%"] = {
-			mod("ColdExposure", "BASE", nil, 0, 0, { type = "GlobalEffect", effectType = "Debuff" }),
+			mod("ColdExposure", "BASE", nil, 0, 0, { type = "GlobalEffect", effectType = "Debuff", effectName = "Frost Bomb" }),
 		},
 		["frost_bomb_damage_+%_final_per_100ms_duration"] = {
 			skill("frostBombDamagePer100ms", nil),
+		},
+		["life_regeneration_rate_+%"] = {
+			mod("LifeRegen", "INC", nil, 0, 0, { type = "GlobalEffect", effectType = "Debuff", effectName = "Frost Bomb" }),
+		},
+		["energy_shield_regeneration_rate_+%"] = {
+			mod("EnergyShieldRegen", "INC", nil, 0, 0, { type = "GlobalEffect", effectType = "Debuff", effectName = "Frost Bomb" }),
 		},
 	},
 #baseMod skill("debuffSecondary", true)
@@ -1119,7 +1144,7 @@ local skills, mod, flag, skill = ...
 			mod("EnemyShockDuration", "INC", nil, 0, 0, { type = "GlobalEffect", effectType = "Buff" }),
 		},
 		["galvanic_field_damage_+%_final_per_5%_increased_damage_taken_from_shock"] = {
-			mod("Damage", "MORE", nil, 0, 0, { type = "Multiplier", var = "ShockEffect", div = 5, actor = "enemy" }),
+			mod("Damage", "MORE", nil, ModFlag.Hit, 0, { type = "Multiplier", var = "ShockEffect", div = 5, actor = "enemy" }),
 		},
 		["galvanic_field_radius_+_per_10%_increased_damage_taken_from_shock"] = {
 			skill("radiusExtra", nil, { type = "Multiplier", var = "ShockEffect", div = 10, actor = "enemy" }),
@@ -1416,7 +1441,7 @@ local skills, mod, flag, skill = ...
 			flag("SpellDamageAppliesToAttacks"),
 			mod("ImprovedSpellDamageAppliesToAttacks", "MAX", nil),
 		},
-		["cast_speed_+%_applies_to_attack_speed_at_%_of_original_value"] = {
+		["active_skill_cast_speed_+%_applies_to_attack_speed_at_%_of_original_value"] = {
 			flag("CastSpeedAppliesToAttacks"),
 			mod("ImprovedCastSpeedAppliesToAttacks", "MAX", nil)
 		},
@@ -1610,6 +1635,10 @@ local skills, mod, flag, skill = ...
 	statMap = {
 		["lightning_tendrils_channelled_larger_pulse_damage_+%_final"] = {
 			mod("Damage", "MORE", nil, 0, bit.bor(KeywordFlag.Hit, KeywordFlag.Ailment), { type = "SkillPart", skillPart = 2 }),
+		},
+		["lightning_tendrils_channelled_larger_pulse_always_crit"] = {
+			mod("CritChance", "OVERRIDE", nil, 0, 0, { type = "SkillPart", skillPart = 2 }),
+			base = 100
 		},
 	},
 #baseMod skill("radius", 22)
@@ -2118,7 +2147,7 @@ local skills, mod, flag, skill = ...
 #mods
 
 #skill ConduitSigil
-#flags spell area duration brand
+#flags spell area duration brand chaining
 	preDamageFunc = function(activeSkill, output)
 		activeSkill.skillData.hitTimeOverride = activeSkill.skillData.repeatFrequency / (1 + activeSkill.skillModList:Sum("INC", activeSkill.skillCfg, "Speed", "BrandActivationFrequency") / 100) / activeSkill.skillModList:More(activeSkill.skillCfg, "BrandActivationFrequency")
 	end,
@@ -2430,6 +2459,10 @@ local skills, mod, flag, skill = ...
 
 #skill Purge
 #flags spell area duration
+	preDamageFunc = function(activeSkill, output)
+		local duration = math.floor(math.ceil(activeSkill.skillData.duration * data.misc.ServerTickRate) / data.misc.ServerTickRate * output.DurationMod * 10)
+		activeSkill.skillModList:NewMod("DotMultiplier", "BASE", activeSkill.skillModList:Sum("INC", activeSkill.skillCfg, "WaveOfConvictionDurationDotMulti") * duration / 100, "Skill:Purge", 0, { type = "Multiplier", var = "WoCDurationExpired"})
+	end,
 	statMap = {
 		["purge_expose_resist_%_matching_highest_element_damage"] = {
 			mod("FireExposure", "BASE", nil, 0, 0, { type = "GlobalEffect", effectType = "Debuff", effectName = "Fire Exposure", effectCond = "WaveOfConvictionFireExposureActive" }),

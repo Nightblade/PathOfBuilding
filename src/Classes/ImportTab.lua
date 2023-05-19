@@ -26,7 +26,7 @@ local ImportTabClass = newClass("ImportTab", "ControlHost", "Control", function(
 
 	self.charImportMode = "GETACCOUNTNAME"
 	self.charImportStatus = "Idle"
-	self.controls.sectionCharImport = new("SectionControl", {"TOPLEFT",self,"TOPLEFT"}, 10, 18, 600, 250, "Character Import")
+	self.controls.sectionCharImport = new("SectionControl", {"TOPLEFT",self,"TOPLEFT"}, 10, 18, 650, 250, "Character Import")
 	self.controls.charImportStatusLabel = new("LabelControl", {"TOPLEFT",self.controls.sectionCharImport,"TOPLEFT"}, 6, 14, 200, 16, function()
 		return "^7Character import status: "..self.charImportStatus
 	end)
@@ -154,11 +154,16 @@ You can get this from your web browser's cookies while logged into the Path of E
 	end)
 
 	-- Build import/export
-	self.controls.sectionBuild = new("SectionControl", {"TOPLEFT",self.controls.sectionCharImport,"BOTTOMLEFT"}, 0, 18, 600, 182, "Build Sharing")
+	self.controls.sectionBuild = new("SectionControl", {"TOPLEFT",self.controls.sectionCharImport,"BOTTOMLEFT"}, 0, 18, 650, 182, "Build Sharing")
 	self.controls.generateCodeLabel = new("LabelControl", {"TOPLEFT",self.controls.sectionBuild,"TOPLEFT"}, 6, 14, 0, 16, "^7Generate a code to share this build with other Path of Building users:")
 	self.controls.generateCode = new("ButtonControl", {"LEFT",self.controls.generateCodeLabel,"RIGHT"}, 4, 0, 80, 20, "Generate", function()
 		self.controls.generateCodeOut:SetText(common.base64.encode(Deflate(self.build:SaveDB("code"))):gsub("+","-"):gsub("/","_"))
 	end)
+	self.controls.enablePartyExportBuffs = new("CheckBoxControl", {"LEFT",self.controls.generateCode,"RIGHT"}, 100, 0, 18, "Export Support", function(state)
+		self.build.partyTab.enableExportBuffs = state
+		self.build.buildFlag = true 
+	--end, "This is for party play, to export support character, it enables the exporting of auras, curses and modifiers to the enemy", false)
+	end, "This is for party play, to export support character, it enables the exporting of auras and curses", false)
 	self.controls.generateCodeOut = new("EditControl", {"TOPLEFT",self.controls.generateCodeLabel,"BOTTOMLEFT"}, 0, 8, 250, 20, "", "Code", "%Z")
 	self.controls.generateCodeOut.enabled = function()
 		return #self.controls.generateCodeOut.buf > 0
@@ -337,6 +342,8 @@ function ImportTabClass:Load(xml, fileName)
 	self.lastRealm = xml.attrib.lastRealm
 	self.controls.accountRealm:SelByValue( self.lastRealm or main.lastRealm or "PC", "id" )
 	self.lastAccountHash = xml.attrib.lastAccountHash
+	self.controls.enablePartyExportBuffs.state = xml.attrib.exportParty == "true"
+	self.build.partyTab.enableExportBuffs = self.controls.enablePartyExportBuffs.state
 	if self.lastAccountHash then
 		for accountName in pairs(main.gameAccounts) do
 			if common.sha1(accountName) == self.lastAccountHash then
@@ -352,6 +359,7 @@ function ImportTabClass:Save(xml)
 		lastRealm = self.lastRealm,
 		lastAccountHash = self.lastAccountHash,
 		lastCharacterHash = self.lastCharacterHash,
+		exportParty = tostring(self.controls.enablePartyExportBuffs.state),
 	}
 end
 
@@ -580,10 +588,23 @@ function ImportTabClass:ImportPassiveTreeAndJewels(json, charData)
 	end
 	self.build.itemsTab:PopulateSlots()
 	self.build.itemsTab:AddUndoState()
-	self.build.spec:ImportFromNodeList(charData.classId, charData.ascendancyClass, charPassiveData.hashes, charPassiveData.mastery_effects or {})
+	self.build.spec:ImportFromNodeList(charData.classId, charData.ascendancyClass, charPassiveData.hashes, charPassiveData.mastery_effects or {}, latestTreeVersion)
 	self.build.spec:AddUndoState()
 	self.build.characterLevel = charData.level
+	self.build.characterLevelAutoMode = false
+	self.build.configTab:UpdateLevel()
 	self.build.controls.characterLevel:SetText(charData.level)
+	self.build:EstimatePlayerProgress()
+	local resistancePenaltyIndex = 3
+	if self.build.Act then -- Estimate resistance penalty setting based on act progression estimate
+		if type(self.build.Act) == "string" and self.build.Act == "Endgame" then resistancePenaltyIndex = 3
+		elseif type(self.build.Act) == "number" then 
+			if self.build.Act < 5 then resistancePenaltyIndex = 1
+			elseif self.build.Act > 5 and self.build.Act < 11 then resistancePenaltyIndex = 2
+			elseif self.build.Act > 10 then resistancePenaltyIndex = 3 end
+		end
+	end
+	self.build.configTab.varControls["resistancePenalty"]:SetSel(resistancePenaltyIndex)
 	self.build.buildFlag = true
 	main:SetWindowTitleSubtext(string.format("%s (%s, %s, %s)", self.build.buildName, charData.name, charData.class, charData.league))
 end
@@ -667,12 +688,13 @@ function ImportTabClass:ImportItemsAndSkills(json)
 	self.build.itemsTab:AddUndoState()
 	self.build.skillsTab:AddUndoState()
 	self.build.characterLevel = charItemData.character.level
+	self.build.configTab:UpdateLevel()
 	self.build.controls.characterLevel:SetText(charItemData.character.level)
 	self.build.buildFlag = true
 	return charItemData.character -- For the wrapper
 end
 
-local rarityMap = { [0] = "NORMAL", "MAGIC", "RARE", "UNIQUE", [9] = "RELIC" }
+local rarityMap = { [0] = "NORMAL", "MAGIC", "RARE", "UNIQUE", [9] = "RELIC", [10] = "RELIC" }
 local slotMap = { ["Weapon"] = "Weapon 1", ["Offhand"] = "Weapon 2", ["Weapon2"] = "Weapon 1 Swap", ["Offhand2"] = "Weapon 2 Swap", ["Helm"] = "Helmet", ["BodyArmour"] = "Body Armour", ["Gloves"] = "Gloves", ["Boots"] = "Boots", ["Amulet"] = "Amulet", ["Ring"] = "Ring 1", ["Ring2"] = "Ring 2", ["Belt"] = "Belt" }
 
 function ImportTabClass:ImportItem(itemData, slotName)
@@ -820,6 +842,7 @@ function ImportTabClass:ImportItem(itemData, slotName)
 	item.classRequirementModLines = { }
 	item.implicitModLines = { }
 	item.explicitModLines = { }
+	item.crucibleModLines = { }
 	if itemData.enchantMods then
 		for _, line in ipairs(itemData.enchantMods) do
 			for line in line:gmatch("[^\n]+") do
@@ -857,6 +880,14 @@ function ImportTabClass:ImportItem(itemData, slotName)
 			for line in line:gmatch("[^\n]+") do
 				local modList, extra = modLib.parseMod(line)
 				t_insert(item.explicitModLines, { line = line, extra = extra, mods = modList or { } })
+			end
+		end
+	end
+	if itemData.crucibleMods then
+		for _, line in ipairs(itemData.crucibleMods) do
+			for line in line:gmatch("[^\n]+") do
+				local modList, extra = modLib.parseMod(line)
+				t_insert(item.crucibleModLines, { line = line, extra = extra, mods = modList or { }, crucible = true })
 			end
 		end
 	end

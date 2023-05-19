@@ -68,6 +68,47 @@ function main:Init()
 		self.allowTreeDownload = true
 	end
 
+
+	self.inputEvents = { }
+	self.popups = { }
+	self.tooltipLines = { }
+
+	self.gameAccounts = { }
+
+	self.buildSortMode = "NAME"
+	self.connectionProtocol = 0
+	self.nodePowerTheme = "RED/BLUE"
+	self.colorPositive = defaultColorCodes.POSITIVE
+	self.colorNegative = defaultColorCodes.NEGATIVE
+	self.showThousandsSeparators = true
+	self.thousandsSeparator = ","
+	self.decimalSeparator = "."
+	self.defaultItemAffixQuality = 0.5
+	self.showTitlebarName = true
+	self.showWarnings = true
+	self.slotOnlyTooltips = true
+	self.POESESSID = ""
+
+	local ignoreBuild
+	if arg[1] then
+		buildSites.DownloadBuild(arg[1], nil, function(isSuccess, data)
+			if not isSuccess then
+				self:SetMode("BUILD", false, data)
+			else
+				local xmlText = Inflate(common.base64.decode(data:gsub("-","+"):gsub("_","/")))
+				self:SetMode("BUILD", false, "Imported Build", xmlText)
+				self.newModeChangeToTree = true
+			end
+		end)
+		arg[1] = nil -- Protect against downloading again this session.
+		ignoreBuild = true
+	end
+
+	if not ignoreBuild then
+		self:SetMode("BUILD", false, "Unnamed build")
+	end
+	self:LoadSettings(ignoreBuild)
+
 	self.tree = { }
 	self:LoadTree(latestTreeVersion)
 
@@ -78,6 +119,7 @@ function main:Init()
 			local newItem = new("Item", "Rarity: Unique\n"..raw)
 			if newItem.base then
 				newItem:NormaliseQuality()
+				newItem:BuildAndParseRaw()
 				self.uniqueDB.list[newItem.name] = newItem
 			elseif launch.devMode then
 				ConPrintf("Unique DB unrecognised item of type '%s':\n%s", type, raw)
@@ -149,7 +191,7 @@ function main:Init()
 	self.controls.versionLabel.label = function()
 		return "^8Version: "..launch.versionNumber..(launch.versionBranch == "dev" and " (Dev)" or launch.versionBranch == "beta" and " (Beta)" or "")
 	end
-	self.controls.devMode = new("LabelControl", {"BOTTOMLEFT",self.anchorMain,"BOTTOMLEFT"}, 0, -26, 0, 20, "^1Dev Mode")
+	self.controls.devMode = new("LabelControl", {"BOTTOMLEFT",self.anchorMain,"BOTTOMLEFT"}, 0, -26, 0, 20, colorCodes.NEGATIVE.."Dev Mode")
 	self.controls.devMode.shown = function()
 		return launch.devMode
 	end
@@ -176,43 +218,7 @@ please reinstall using one of the installers from
 the "Releases" section of the GitHub page.]])
 	end
 
-	self.inputEvents = { }
-	self.popups = { }
-	self.tooltipLines = { }
-
-	self.gameAccounts = { }
-
-	self.buildSortMode = "NAME"
-	self.connectionProtocol = 0
-	self.nodePowerTheme = "RED/BLUE"
-	self.showThousandsSeparators = true
-	self.thousandsSeparator = ","
-	self.decimalSeparator = "."
-	self.defaultItemAffixQuality = 0.5
-	self.showTitlebarName = true
-	self.showWarnings = true
-	self.slotOnlyTooltips = true
-	self.POESESSID = ""
-
-	local ignoreBuild
-	if arg[1] then
-		buildSites.DownloadBuild(arg[1], nil, function(isSuccess, data)
-			if not isSuccess then
-				self:SetMode("BUILD", false, data)
-			else
-				local xmlText = Inflate(common.base64.decode(data:gsub("-","+"):gsub("_","/")))
-				self:SetMode("BUILD", false, "Imported Build", xmlText)
-				self.newModeChangeToTree = true
-			end
-		end)
-		arg[1] = nil -- Protect against downloading again this session.
-		ignoreBuild = true
-	end
-
-	if not ignoreBuild then
-		self:SetMode("BUILD", false, "Unnamed build")
-	end
-	self:LoadSettings(ignoreBuild)
+	self:LoadSharedItems()
 
 	self.onFrameFuncs = { }
 end
@@ -468,34 +474,6 @@ function main:LoadSettings(ignoreBuild)
 						}
 					end
 				end
-			elseif node.elem == "SharedItems" then
-				for _, child in ipairs(node) do
-					if child.elem == "Item" then
-						local rawItem = { raw = "" }
-						for _, subChild in ipairs(child) do
-							if type(subChild) == "string" then
-								rawItem.raw = subChild
-							end
-						end
-						local newItem = new("Item", rawItem.raw)
-						t_insert(self.sharedItemList, newItem)
-					elseif child.elem == "ItemSet" then
-						local sharedItemSet = { title = child.attrib.title, slots = { } }
-						for _, grandChild in ipairs(child) do
-							if grandChild.elem == "Item" then
-								local rawItem = { raw = "" }
-								for _, subChild in ipairs(grandChild) do
-									if type(subChild) == "string" then
-										rawItem.raw = subChild
-									end
-								end
-								local newItem = new("Item", rawItem.raw)
-								sharedItemSet.slots[grandChild.attrib.slotName] = newItem
-							end
-						end
-						t_insert(self.sharedItemSetList, sharedItemSet)
-					end
-				end
 			elseif node.elem == "Misc" then
 				if node.attrib.buildSortMode then
 					self.buildSortMode = node.attrib.buildSortMode
@@ -507,6 +485,14 @@ function main:LoadSettings(ignoreBuild)
 				end
 				if node.attrib.nodePowerTheme then
 					self.nodePowerTheme = node.attrib.nodePowerTheme
+				end
+				if node.attrib.colorPositive then
+					updateColorCode("POSITIVE", node.attrib.colorPositive)
+					self.colorPositive = node.attrib.colorPositive
+				end
+				if node.attrib.colorNegative then
+					updateColorCode("NEGATIVE", node.attrib.colorNegative)
+					self.colorNegative = node.attrib.colorNegative
 				end
 				-- In order to preserve users' settings through renaming/merging this variable, we have this if statement to use the first found setting
 				-- Once the user has closed PoB once, they will be using the new `showThousandsSeparator` variable name, so after some time, this statement may be removed
@@ -554,6 +540,52 @@ function main:LoadSettings(ignoreBuild)
 				if node.attrib.invertSliderScrollDirection then
 					self.invertSliderScrollDirection = node.attrib.invertSliderScrollDirection == "true"
 				end
+				if node.attrib.disableDevAutoSave then
+					self.disableDevAutoSave = node.attrib.disableDevAutoSave == "true"
+				end
+			end
+		end
+	end
+end
+
+function main:LoadSharedItems()
+	local setXML, errMsg = common.xml.LoadXMLFile(self.userPath.."Settings.xml")
+	if not setXML then
+		return true
+	elseif setXML[1].elem ~= "PathOfBuilding" then
+		launch:ShowErrMsg("^1Error parsing 'Settings.xml': 'PathOfBuilding' root element missing")
+		return true
+	end
+	for _, node in ipairs(setXML[1]) do
+		if type(node) == "table" then
+			if node.elem == "SharedItems" then
+				for _, child in ipairs(node) do
+					if child.elem == "Item" then
+						local rawItem = { raw = "" }
+						for _, subChild in ipairs(child) do
+							if type(subChild) == "string" then
+								rawItem.raw = subChild
+							end
+						end
+						local newItem = new("Item", rawItem.raw)
+						t_insert(self.sharedItemList, newItem)
+					elseif child.elem == "ItemSet" then
+						local sharedItemSet = { title = child.attrib.title, slots = { } }
+						for _, grandChild in ipairs(child) do
+							if grandChild.elem == "Item" then
+								local rawItem = { raw = "" }
+								for _, subChild in ipairs(grandChild) do
+									if type(subChild) == "string" then
+										rawItem.raw = subChild
+									end
+								end
+								local newItem = new("Item", rawItem.raw)
+								sharedItemSet.slots[grandChild.attrib.slotName] = newItem
+							end
+						end
+						t_insert(self.sharedItemSetList, sharedItemSet)
+					end
+				end
 			end
 		end
 	end
@@ -597,6 +629,8 @@ function main:SaveSettings()
 		proxyURL = launch.proxyURL,
 		buildPath = (self.buildPath ~= self.defaultBuildPath and self.buildPath or nil),
 		nodePowerTheme = self.nodePowerTheme,
+		colorPositive = self.colorPositive,
+		colorNegative = self.colorNegative,
 		showThousandsSeparators = tostring(self.showThousandsSeparators),
 		thousandsSeparator = self.thousandsSeparator,
 		decimalSeparator = self.decimalSeparator,
@@ -610,6 +644,7 @@ function main:SaveSettings()
 		slotOnlyTooltips = tostring(self.slotOnlyTooltips),
 		POESESSID = self.POESESSID,
 		invertSliderScrollDirection = tostring(self.invertSliderScrollDirection),
+		disableDevAutoSave = tostring(self.disableDevAutoSave),
 	} })
 	local res, errMsg = common.xml.SaveXMLFile(setXML, self.userPath.."Settings.xml")
 	if not res then
@@ -692,6 +727,30 @@ function main:OpenOptionsPopup()
 	controls.nodePowerTheme:SelByValue(self.nodePowerTheme, "theme")
 
 	nextRow()
+	controls.colorPositive = new("EditControl", { "TOPLEFT", nil, "TOPLEFT" }, defaultLabelPlacementX, currentY, 100, 18, tostring(self.colorPositive:gsub('^(^)', '0')), nil, nil, 8, function(buf)
+		local match = string.match(buf, "0x%x+")
+		if match and #match == 8 then
+			updateColorCode("POSITIVE", buf)
+			self.colorPositive = buf
+		end
+	end)
+	controls.colorPositiveLabel = new("LabelControl", { "RIGHT", controls.colorPositive, "LEFT" }, defaultLabelSpacingPx, 0, 0, 16, "^7Hex colour for positive values:")
+	controls.colorPositive.tooltipText = "Overrides the default hex colour for positive values in breakdowns. \nExpected format is 0x000000. " ..
+		"The default value is " .. tostring(defaultColorCodes.POSITIVE:gsub('^(^)', '0')) .. ".\nIf updating while inside a build, please re-load the build after saving."
+
+	nextRow()
+	controls.colorNegative = new("EditControl", { "TOPLEFT", nil, "TOPLEFT" }, defaultLabelPlacementX, currentY, 100, 18, tostring(self.colorNegative:gsub('^(^)', '0')), nil, nil, 8, function(buf)
+		local match = string.match(buf, "0x%x+")
+		if match and #match == 8 then
+			updateColorCode("NEGATIVE", buf)
+			self.colorNegative = buf
+		end
+	end)
+	controls.colorNegativeLabel = new("LabelControl", { "RIGHT", controls.colorNegative, "LEFT" }, defaultLabelSpacingPx, 0, 0, 16, "^7Hex colour for negative values:")
+	controls.colorNegative.tooltipText = "Overrides the default hex colour for negative values in breakdowns. \nExpected format is 0x000000. " ..
+		"The default value is " .. tostring(defaultColorCodes.NEGATIVE:gsub('^(^)', '0')) .. ".\nIf updating while inside a build, please re-load the build after saving."
+
+	nextRow()
 	controls.betaTest = new("CheckBoxControl", { "TOPLEFT", nil, "TOPLEFT" }, defaultLabelPlacementX, currentY, 20, "^7Opt-in to weekly beta test builds:", function(state)
 		self.betaTest = state
 	end)
@@ -705,13 +764,13 @@ function main:OpenOptionsPopup()
 	controls.showThousandsSeparators.state = self.showThousandsSeparators
 
 	nextRow()
-	controls.thousandsSeparator = new("EditControl", { "TOPLEFT", nil, "TOPLEFT" }, defaultLabelPlacementX, currentY, 30, 20, self.thousandsSeparator, nil, "%%^", 1, function(buf)
+	controls.thousandsSeparator = new("EditControl", { "TOPLEFT", nil, "TOPLEFT" }, defaultLabelPlacementX, currentY, 30, 20, self.thousandsSeparator, nil, "%w", 1, function(buf)
 		self.thousandsSeparator = buf
 	end)
 	controls.thousandsSeparatorLabel = new("LabelControl", { "RIGHT", controls.thousandsSeparator, "LEFT" }, defaultLabelSpacingPx, 0, 92, 16, "^7Thousands separator:")
 
 	nextRow()
-	controls.decimalSeparator = new("EditControl", { "TOPLEFT", nil, "TOPLEFT" }, defaultLabelPlacementX, currentY, 30, 20, self.decimalSeparator, nil, "%%^", 1, function(buf)
+	controls.decimalSeparator = new("EditControl", { "TOPLEFT", nil, "TOPLEFT" }, defaultLabelPlacementX, currentY, 30, 20, self.decimalSeparator, nil, "%w", 1, function(buf)
 		self.decimalSeparator = buf
 	end)
 	controls.decimalSeparatorLabel = new("LabelControl", { "RIGHT", controls.decimalSeparator, "LEFT" }, defaultLabelSpacingPx, 0, 92, 16, "^7Decimal separator:")
@@ -732,7 +791,7 @@ function main:OpenOptionsPopup()
 	controls.defaultCharLevel = new("EditControl", { "TOPLEFT", nil, "TOPLEFT" }, defaultLabelPlacementX, currentY, 80, 20, self.defaultCharLevel, nil, "%D", 3, function(charLevel)
 		self.defaultCharLevel = m_min(m_max(tonumber(charLevel) or 1, 1), 100)
 	end)
-	controls.defaultCharLevel.tooltipText = "Set the default character level that can be overwritten by build-related level settings."
+	controls.defaultCharLevel.tooltipText = "Set the default level of your builds. If this is higher than 1, manual level mode will be enabled by default in new builds."
 	controls.defaultCharLevelLabel = new("LabelControl", { "RIGHT", controls.defaultCharLevel, "LEFT" }, defaultLabelSpacingPx, 0, 0, 16, "^7Default character level:")
 
 	nextRow()
@@ -763,10 +822,21 @@ function main:OpenOptionsPopup()
 	end)
 	controls.invertSliderScrollDirection.tooltipText = "Default scroll direction is:\nScroll Up = Move right\nScroll Down = Move left"
 	controls.invertSliderScrollDirection.state = self.invertSliderScrollDirection
+	
+	if launch.devMode then
+		nextRow()
+		controls.disableDevAutoSave = new("CheckBoxControl", { "TOPLEFT", nil, "TOPLEFT" }, defaultLabelPlacementX, currentY, 20, "^7Disable Dev AutoSave:", function(state)
+			self.disableDevAutoSave = state
+		end)
+		controls.disableDevAutoSave.tooltipText = "Do not Autosave builds while on Dev branch"
+		controls.disableDevAutoSave.state = self.disableDevAutoSave
+	end
 
 	controls.betaTest.state = self.betaTest
 	controls.titlebarName.state = self.showTitlebarName
 	local initialNodePowerTheme = self.nodePowerTheme
+	local initialColorPositive = self.colorPositive
+	local initialColorNegative = self.colorNegative
 	local initialThousandsSeparatorDisplay = self.showThousandsSeparators
 	local initialTitlebarName = self.showTitlebarName
 	local initialThousandsSeparator = self.thousandsSeparator
@@ -778,6 +848,7 @@ function main:OpenOptionsPopup()
 	local initialShowWarnings = self.showWarnings
 	local initialSlotOnlyTooltips = self.slotOnlyTooltips
 	local initialInvertSliderScrollDirection = self.invertSliderScrollDirection
+	local initialDisableDevAutoSave = self.disableDevAutoSave
 
 	-- last line with buttons has more spacing
 	nextRow(1.5)
@@ -808,6 +879,10 @@ function main:OpenOptionsPopup()
 	end)
 	controls.cancel = new("ButtonControl", nil, 45, currentY, 80, 20, "Cancel", function()
 		self.nodePowerTheme = initialNodePowerTheme
+		self.colorPositive = initialColorPositive
+		updateColorCode("POSITIVE", self.colorPositive)
+		self.colorNegative = initialColorNegative
+		updateColorCode("NEGATIVE", self.colorNegative)
 		self.showThousandsSeparators = initialThousandsSeparatorDisplay
 		self.thousandsSeparator = initialThousandsSeparator
 		self.decimalSeparator = initialDecimalSeparator
@@ -819,6 +894,7 @@ function main:OpenOptionsPopup()
 		self.showWarnings = initialShowWarnings
 		self.slotOnlyTooltips = initialSlotOnlyTooltips
 		self.invertSliderScrollDirection = initialInvertSliderScrollDirection
+		self.disableDevAutoSave = initialDisableDevAutoSave
 		main:ClosePopup()
 	end)
 	nextRow(1.5)
@@ -899,6 +975,44 @@ function main:OpenAboutPopup()
 			end
 		end
 	end
+	local helpList = { }
+	do
+		local helpName = launch.devMode and "../help.txt" or "help.txt"
+		local helpFile = io.open(helpName, "r")
+		if helpFile then
+			helpFile:close()
+			for line in io.lines(helpName) do
+				local title, titleIndex = line:match("^---%[(.+)%]%[(.+)%]$")
+				if title then
+					if #helpList > 0 then
+						t_insert(helpList, { height = 10 })
+					end
+					t_insert(helpList, { height = 18, "^7"..title.." ("..titleIndex..")" })
+				else
+					local dev = line:match("^DEV%[(.+)%]$")
+					if not ( dev and not launch.devMode ) then
+						line = (dev or line)
+						local outdent, indent = line:match("(.*)\t+(.*)")
+						if outdent then
+							local indentLines = self:WrapString(indent, 12, 500)
+							if #indentLines > 1 then
+								for i, indentLine in ipairs(indentLines) do
+									t_insert(helpList, { height = 12, (i == 1 and outdent or " "), "^7"..indentLine })
+								end
+							else
+								t_insert(helpList, { height = 12, "^7"..outdent, "^7"..indent })
+							end
+						else
+							local Lines = self:WrapString(line, 12, 560)
+							for i, line2 in ipairs(Lines) do
+								t_insert(helpList, { height = 12, "^7"..(i > 1 and "    " or "")..line2 })
+							end
+						end
+					end
+				end
+			end
+		end
+	end
 	local controls = { }
 	controls.close = new("ButtonControl", {"TOPRIGHT",nil,"TOPRIGHT"}, -10, 10, 50, 20, "Close", function()
 		self:ClosePopup()
@@ -908,8 +1022,13 @@ function main:OpenAboutPopup()
 	controls.github = new("ButtonControl", nil, 0, 62, 438, 18, "^7GitHub page: ^x4040FFhttps://github.com/PathOfBuildingCommunity/PathOfBuilding", function(control)
 		OpenURL("https://github.com/PathOfBuildingCommunity/PathOfBuilding")
 	end)
-	controls.verLabel = new("LabelControl", { "TOPLEFT", nil, "TOPLEFT" }, 10, 82, 0, 18, "^7Version history:")
-	controls.changelog = new("TextListControl", nil, 0, 100, 630, 390, nil, changeList)
+	controls.verLabel = new("ButtonControl", { "TOPLEFT", nil, "TOPLEFT" }, 10, 85, 100, 18, "^7Version history:", function()
+		controls.changelog.list = changeList
+	end)
+	controls.helpLabel = new("ButtonControl", { "TOPLEFT", nil, "TOPLEFT" }, 600, 85, 40, 18, "^7Help:", function()
+		controls.changelog.list = helpList
+	end)
+	controls.changelog = new("TextListControl", nil, 0, 103, 630, 387, {{ x = 1, align = "LEFT" }, { x = 110, align = "LEFT" }}, changeList)
 	self:OpenPopup(650, 500, "About", controls)
 end
 
@@ -1176,16 +1295,16 @@ do
 				s = #str + 1
 				e = #str + 1
 			end
-			if DrawStringWidth(height, "VAR", str:sub(lineStart, s - 1)) > width then
-				t_insert(wrapTable, str:sub(lineStart, lastBreak))
-				lineStart = lastSpace
-			end
 			if s > #str then
 				t_insert(wrapTable, str:sub(lineStart, -1))
 				break
 			end
 			lastBreak = s - 1
 			lastSpace = e + 1
+			if DrawStringWidth(height, "VAR", str:sub(lineStart, s - 1)) > width then
+				t_insert(wrapTable, str:sub(lineStart, lastBreak))
+				lineStart = lastSpace
+			end
 		end
 		return wrapTable
 	end

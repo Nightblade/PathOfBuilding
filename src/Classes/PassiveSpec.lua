@@ -13,12 +13,25 @@ local m_max = math.max
 local m_floor = math.floor
 local b_lshift = bit.lshift
 
-local PassiveSpecClass = newClass("PassiveSpec", "UndoHandler", function(self, build, treeVersion)
+local PassiveSpecClass = newClass("PassiveSpec", "UndoHandler", function(self, build, treeVersion, convert)
 	self.UndoHandler()
 
 	self.build = build
+
+	-- Initialise and build all tables
+	self:Init(treeVersion, convert)
+
+	self:SelectClass(0)
+end)
+
+function PassiveSpecClass:Init(treeVersion, convert)
 	self.treeVersion = treeVersion
 	self.tree = main:LoadTree(treeVersion)
+	self.ignoredNodes = { }
+	local previousTreeNodes = { }
+	if convert then
+		previousTreeNodes = self.build.spec.nodes
+	end
 
 	-- Make a local copy of the passive tree that we can modify
 	self.nodes = { }
@@ -32,6 +45,10 @@ local PassiveSpecClass = newClass("PassiveSpec", "UndoHandler", function(self, b
 		end
 	end
 	for id, node in pairs(self.nodes) do
+		-- if the node is allocated and between the old and new tree has the same ID but does not share the same name, add to list of nodes to be ignored
+		if convert and previousTreeNodes[id] and self.build.spec.allocNodes[id] and node.name ~= previousTreeNodes[id].name then
+			self.ignoredNodes[id] = previousTreeNodes[id]
+		end
 		for _, otherId in ipairs(node.linkedId) do
 			t_insert(node.linked, self.nodes[otherId])
 		end
@@ -57,9 +74,7 @@ local PassiveSpecClass = newClass("PassiveSpec", "UndoHandler", function(self, b
 
 	-- Keys are mastery node IDs, values are mastery effect IDs
 	self.masterySelections = { }
-
-	self:SelectClass(0)
-end)
+end
 
 function PassiveSpecClass:Load(xml, dbFileName)
 	self.title = xml.attrib.title
@@ -165,14 +180,29 @@ function PassiveSpecClass:PostLoad()
 end
 
 -- Import passive spec from the provided class IDs and node hash list
-function PassiveSpecClass:ImportFromNodeList(classId, ascendClassId, hashList, masteryEffects)
+function PassiveSpecClass:ImportFromNodeList(classId, ascendClassId, hashList, masteryEffects, treeVersion)
+	if treeVersion and treeVersion ~= self.treeVersion then
+		self:Init(treeVersion)
+		self.build.treeTab.showConvert = self.treeVersion ~= latestTreeVersion
+	end
 	self:ResetNodes()
 	self:SelectClass(classId)
+	-- move above setting allocNodes so we can compare mastery with selection
+	wipeTable(self.masterySelections)
+	for mastery, effect in pairs(masteryEffects) do
+		-- ignore ggg codes from profile import
+		if (tonumber(effect) < 65536) then
+			self.masterySelections[mastery] = effect
+		end
+	end
 	for _, id in pairs(hashList) do
 		local node = self.nodes[id]
 		if node then
-			node.alloc = true
-			self.allocNodes[id] = node
+			-- check to make sure the mastery node has a corresponding selection, if not do not allocate
+			if node.type ~= "Mastery" or (node.type == "Mastery" and self.masterySelections[id]) then
+				node.alloc = true
+				self.allocNodes[id] = node
+			end
 		else
 			t_insert(self.allocSubgraphNodes, id)
 		end
@@ -182,13 +212,6 @@ function PassiveSpecClass:ImportFromNodeList(classId, ascendClassId, hashList, m
 		if node then
 			node.alloc = true
 			self.allocNodes[id] = node
-		end
-	end
-	wipeTable(self.masterySelections)
-	for mastery, effect in pairs(masteryEffects) do
-		-- ignore ggg codes from profile import
-		if (tonumber(effect) < 65536) then
-			self.masterySelections[mastery] = effect
 		end
 	end
 	self:SelectAscendClass(ascendClassId)
@@ -214,21 +237,27 @@ function PassiveSpecClass:AllocateMasteryEffects(masteryEffects)
 		local id  = masteryEffects:byte(i + 2) * 256 + masteryEffects:byte(i + 3)
 
 		local effect = self.tree.masteryEffects[effectId]
-		self.allocNodes[id].sd = effect.sd
-		self.allocNodes[id].allMasteryOptions = false
-		self.allocNodes[id].reminderText = { "Tip: Right click to select a different effect" }
-		self.tree:ProcessStats(self.allocNodes[id])
-		self.masterySelections[id] = effectId
-		self.allocatedMasteryCount = self.allocatedMasteryCount + 1
-		if not self.allocatedMasteryTypes[self.allocNodes[id].name] then
-			self.allocatedMasteryTypes[self.allocNodes[id].name] = 1
-			self.allocatedMasteryTypeCount = self.allocatedMasteryTypeCount + 1
-		else
-			local prevCount = self.allocatedMasteryTypes[self.allocNodes[id].name]
-			self.allocatedMasteryTypes[self.allocNodes[id].name] = prevCount + 1
-			if prevCount == 0 then
+		if effect then
+			self.allocNodes[id].sd = effect.sd
+			self.allocNodes[id].allMasteryOptions = false
+			self.allocNodes[id].reminderText = { "Tip: Right click to select a different effect" }
+			self.tree:ProcessStats(self.allocNodes[id])
+			self.masterySelections[id] = effectId
+			self.allocatedMasteryCount = self.allocatedMasteryCount + 1
+			if not self.allocatedMasteryTypes[self.allocNodes[id].name] then
+				self.allocatedMasteryTypes[self.allocNodes[id].name] = 1
 				self.allocatedMasteryTypeCount = self.allocatedMasteryTypeCount + 1
+			else
+				local prevCount = self.allocatedMasteryTypes[self.allocNodes[id].name]
+				self.allocatedMasteryTypes[self.allocNodes[id].name] = prevCount + 1
+				if prevCount == 0 then
+					self.allocatedMasteryTypeCount = self.allocatedMasteryTypeCount + 1
+				end
 			end
+		else
+			-- if there is no effect/selection on the latest tree then we do not want to allocate the mastery
+			self.allocNodes[id] = nil
+			self.nodes[id].alloc = false
 		end
 	end
 end
@@ -291,7 +320,7 @@ function PassiveSpecClass:EncodeURL(prefix)
 	local masteryNodeIds = {}
 
 	for id, node in pairs(self.allocNodes) do
-		if node.type ~= "ClassStart" and node.type ~= "AscendClassStart" and id < 65536 then
+		if node.type ~= "ClassStart" and node.type ~= "AscendClassStart" and id < 65536 and nodeCount < 255 then
 			t_insert(a, m_floor(id / 256))
 			t_insert(a, id % 256)
 			nodeCount = nodeCount + 1
@@ -595,7 +624,7 @@ function PassiveSpecClass:SetNodeDistanceToClassStart(root)
 			end
 
 			-- Otherwise, record the distance to this node if it hasn't already been visited
-			if other.alloc and not nodeDistanceToRoot[other.id] then
+			if other.alloc and node.type ~= "Mastery" and other.type ~= "ClassStart" and other.type ~= "AscendClassStart" and not nodeDistanceToRoot[other.id] then
 				nodeDistanceToRoot[other.id] = curDist;
 
 				-- Add the other node to the end of the queue
@@ -641,7 +670,7 @@ function PassiveSpecClass:BuildAllDependsAndPaths()
 		if node.type ~= "ClassStart" and node.type ~= "Socket" and not node.ascendancyName then
 			for nodeId, itemId in pairs(self.jewels) do
 				local item = self.build.itemsTab.items[itemId]
-				if item and item.jewelRadiusIndex and self.allocNodes[nodeId] and item.jewelData then
+				if item and item.jewelRadiusIndex and self.allocNodes[nodeId] and item.jewelData and not item.jewelData.limitDisabled then
 					local radiusIndex = item.jewelRadiusIndex
 					if self.nodes[nodeId].nodesInRadius and self.nodes[nodeId].nodesInRadius[radiusIndex][node.id] then
 						if itemId ~= 0 then
@@ -861,32 +890,39 @@ function PassiveSpecClass:BuildAllDependsAndPaths()
 	self.allocatedMasteryTypes = { }
 	self.allocatedMasteryTypeCount = 0
 	for id, node in pairs(self.nodes) do
-		if node.type == "Mastery" and self.masterySelections[id] then
-			local effect = self.tree.masteryEffects[self.masterySelections[id]]
-			if effect then
-				node.sd = effect.sd
-				node.allMasteryOptions = false
-				node.reminderText = { "Tip: Right click to select a different effect" }
-				self.tree:ProcessStats(node)
-				self.allocatedMasteryCount = self.allocatedMasteryCount + 1
-				if not self.allocatedMasteryTypes[self.allocNodes[id].name] then
-					self.allocatedMasteryTypes[self.allocNodes[id].name] = 1
-					self.allocatedMasteryTypeCount = self.allocatedMasteryTypeCount + 1
-				else
-					local prevCount = self.allocatedMasteryTypes[self.allocNodes[id].name]
-					self.allocatedMasteryTypes[self.allocNodes[id].name] = prevCount + 1
-					if prevCount == 0 then
+		if self.ignoredNodes[id] and self.allocNodes[id] then
+			self.nodes[id].alloc = false
+			self.allocNodes[id] = nil
+		else
+			if node.type == "Mastery" and self.masterySelections[id] then
+				local effect = self.tree.masteryEffects[self.masterySelections[id]]
+				if effect and self.allocNodes[id] then
+					node.sd = effect.sd
+					node.allMasteryOptions = false
+					node.reminderText = { "Tip: Right click to select a different effect" }
+					self.tree:ProcessStats(node)
+					self.allocatedMasteryCount = self.allocatedMasteryCount + 1
+					if not self.allocatedMasteryTypes[self.allocNodes[id].name] then
+						self.allocatedMasteryTypes[self.allocNodes[id].name] = 1
 						self.allocatedMasteryTypeCount = self.allocatedMasteryTypeCount + 1
+					else
+						local prevCount = self.allocatedMasteryTypes[self.allocNodes[id].name]
+						self.allocatedMasteryTypes[self.allocNodes[id].name] = prevCount + 1
+						if prevCount == 0 then
+							self.allocatedMasteryTypeCount = self.allocatedMasteryTypeCount + 1
+						end
 					end
+				-- if the tree doesn't recognize the mastery selection or if we have a selection on a mastery that isn't allocated
+				else
+					self.nodes[id].alloc = false
+					self.allocNodes[id] = nil
+					self.masterySelections[id] = nil
 				end
-			else
-				self.nodes[id].alloc = false
-				self.allocNodes[id] = nil
+			elseif node.type == "Mastery" then
+				self:AddMasteryEffectOptionsToNode(node)
+			elseif node.type == "Notable" and node.alloc then
+				self.allocatedNotableCount = self.allocatedNotableCount + 1
 			end
-		elseif node.type == "Mastery" then
-			self:AddMasteryEffectOptionsToNode(node)
-		elseif node.type == "Notable" and node.alloc then
-			self.allocatedNotableCount = self.allocatedNotableCount + 1
 		end
 	end
 
@@ -1525,12 +1561,13 @@ function PassiveSpecClass:CreateUndoState()
 		classId = self.curClassId,
 		ascendClassId = self.curAscendClassId,
 		hashList = allocNodeIdList,
-		masteryEffects = selections
+		masteryEffects = selections,
+		treeVersion = self.treeVersion
 	}
 end
 
-function PassiveSpecClass:RestoreUndoState(state)
-	self:ImportFromNodeList(state.classId, state.ascendClassId, state.hashList, state.masteryEffects)
+function PassiveSpecClass:RestoreUndoState(state, treeVersion)
+	self:ImportFromNodeList(state.classId, state.ascendClassId, state.hashList, state.masteryEffects, treeVersion or state.treeVersion)
 	self:SetWindowTitleWithBuildClass()
 end
 

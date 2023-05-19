@@ -241,6 +241,9 @@ function EditClass:Draw(viewPort, noTooltip)
 		SetDrawColor(0.33, 0.33, 0.33)
 	elseif mOver then
 		SetDrawColor(1, 1, 1)
+	elseif self.borderFunc then
+		r, g, b = self.borderFunc()
+		SetDrawColor(r, g, b)
 	else
 		SetDrawColor(0.5, 0.5, 0.5)
 	end
@@ -287,7 +290,10 @@ function EditClass:Draw(viewPort, noTooltip)
 			DrawString(-self.controls.scrollBarH.offset, -self.controls.scrollBarV.offset, "LEFT", textHeight, self.font, self.placeholder)
 		else
 			SetDrawColor(self.inactiveCol)
-			if self.protected then
+			if self.inactiveText then
+				local inactiveText = type(inactiveText) == "string" and self.inactiveText or self.inactiveText(self.buf)
+				DrawString(-self.controls.scrollBarH.offset, -self.controls.scrollBarV.offset, "LEFT", textHeight, self.font, inactiveText)
+			elseif self.protected then
 				DrawString(-self.controls.scrollBarH.offset, -self.controls.scrollBarV.offset, "LEFT", textHeight, self.font, string.rep(protected_replace, #self.buf))
 			else
 				DrawString(-self.controls.scrollBarH.offset, -self.controls.scrollBarV.offset, "LEFT", textHeight, self.font, self.buf)

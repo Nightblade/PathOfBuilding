@@ -61,7 +61,12 @@ The easiest way to make and test changes is by setting up a development installa
 1. Clone the repository using this command:
 
        git clone -b dev https://github.com/PathOfBuildingCommunity/PathOfBuilding.git
-2. Start Path of Building from the repository by running `./runtime/Path{space}of{space}Building.exe`.
+
+2. Go to the actual folder on your computer where you cloned Path of Building. (e.g. C:/XX/GitHub/PathOfBuilding/runtime/)
+
+       cd PathOfBuilding
+
+3. Start Path of Building from the repository by running `./runtime/Path{space}of{space}Building.exe`.
 
 You can now use the shortcut to run the program from the repository. Running the program in this manner automatically enables "Dev Mode", which has some handy debugging feature:
 * `F5` restarts the program in-place (this is what usually happens when an update is applied).
@@ -243,7 +248,7 @@ Note: For this tutorial, you will need a working installation of [Visual Studio 
 as well as some familiarity with build tools such as [CMake](https://cmake.org).
 1. In Visual Studio, clone the following repository using this command:
 
-        git clone -b master https://github.com/zao/ooz
+        git clone --recurse-submodules -b master https://github.com/zao/ooz
 2. Configure CMake.
 3. Build `bun_extract_file.exe`, `libbun.dll` and `libooz.dll`.
 
