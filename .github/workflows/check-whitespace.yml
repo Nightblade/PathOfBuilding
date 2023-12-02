@@ -32,7 +32,7 @@ jobs:
     - name: git log --check
       id: check_out
       run: |
-        baseSha=${{github.event.pull_request.base.sha}}
+        baseSha=${{github.event.pull_request.base.sha || inputs.ref}}
         problems=()
         commit=
         commitText=
@@ -63,7 +63,7 @@ jobs:
             case "${dash}" in
             *:[1-9]*:) # contains file and line number information
               dashend=${dash#*:}
-              problems+=("[${dash}](https://github.com/${{ github.repository }}/blob/${{github.event.pull_request.head.ref}}/${dash%%:*}#L${dashend%:}) ${sha} ${etc}")
+              problems+=("[${dash}](https://github.com/${{ github.repository }}/blob/${{github.event.pull_request.head.ref || inputs.ref}}/${dash%%:*}#L${dashend%:}) ${sha} ${etc}")
               ;;
             *)
               problems+=("\`${dash} ${sha} ${etc}\`")
