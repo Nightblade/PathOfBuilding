@@ -8,6 +8,12 @@ name: check-whitespace
 on:
   pull_request:
     types: [opened, synchronize]
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: Branch, tag or SHA to checkout
+        default: dev
+        required: false
 
 # Avoid unnecessary builds. Unlike the main CI jobs, these are not
 # ci-configurable (but could be).
