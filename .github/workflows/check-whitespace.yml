@@ -3,17 +3,11 @@ name: check-whitespace
 # Get the repository with all commits to ensure that we can analyze
 # all of the commits contributed via the Pull Request.
 # Process `git log --check` output to extract just the check errors.
-# Exit with failure upon white-space issues.
+# Exit with failure upon white-space issues.              
 
 on:
   pull_request:
     types: [opened, synchronize]
-  workflow_dispatch:
-    inputs:
-      ref:
-        description: Branch, tag or SHA to checkout
-        default: dev
-        required: false
 
 # Avoid unnecessary builds. Unlike the main CI jobs, these are not
 # ci-configurable (but could be).
@@ -32,7 +26,7 @@ jobs:
     - name: git log --check
       id: check_out
       run: |
-        baseSha=${{github.event.pull_request.base.sha || inputs.ref}}
+        baseSha=${{github.event.pull_request.base.sha}}
         problems=()
         commit=
         commitText=
@@ -63,7 +57,7 @@ jobs:
             case "${dash}" in
             *:[1-9]*:) # contains file and line number information
               dashend=${dash#*:}
-              problems+=("[${dash}](https://github.com/${{ github.repository }}/blob/${{github.event.pull_request.head.ref || inputs.ref}}/${dash%%:*}#L${dashend%:}) ${sha} ${etc}")
+              problems+=("[${dash}](https://github.com/${{ github.repository }}/blob/${{github.event.pull_request.head.ref}}/${dash%%:*}#L${dashend%:}) ${sha} ${etc}")
               ;;
             *)
               problems+=("\`${dash} ${sha} ${etc}\`")
